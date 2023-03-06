@@ -29,7 +29,7 @@ void setup() {
   delay(100);
   setConfiguration("AT");
   setConfiguration("AT+CWMODE=1");
-  setConfiguration("AT+CWJAP=\"esp32\",\"12345678\"");
+  setConfiguration(String("AT+CWJAP=\"") + ssid + "\",\"" + password + "\"");
   Serial.println("Aga Baglanildi.");
   setConfiguration("AT+CIPMUX=1");
 }
