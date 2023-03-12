@@ -1,11 +1,12 @@
 import 'dart:io';
-import 'package:mqtt_client/mqtt_client.dart';
-import 'package:mqtt_client/mqtt_server_client.dart';
 import 'package:flutter/material.dart';
+import 'mqtt_client_wrapper.dart';
 
 void main() {
   runApp(MyApp());
 }
+
+MQTTClientWrapper newclient;
 
 class MyApp extends StatelessWidget {
   @override
@@ -49,12 +50,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 decoration: InputDecoration(
                   hintText: 'Enter your username',
                 ),
-                // validator: (value) {
-                //   if (value.isEmpty) {
-                //     return 'Please enter your username';
-                //   }
-                //   return null;
-                // },
                 onSaved: (value) {
                   _username = value;
                 },
@@ -63,12 +58,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 decoration: InputDecoration(
                   hintText: 'Enter your password',
                 ),
-                // validator: (value) {
-                //   if (value.isEmpty) {
-                //     return 'Please enter your password';
-                //   }
-                //   return null;
-                // },
                 onSaved: (value) {
                   _password = value;
                 },
@@ -115,7 +104,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       print('Host: $_host');
                       print('Port: $_port');
 
-                      MQTTClientWrapper newclient = new MQTTClientWrapper();
+                      newclient = new MQTTClientWrapper();
                       newclient.prepareMqttClient(
                           _username, _password, _host, _port);
 
@@ -142,172 +131,93 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-// ToDo: create a new page for the message screen
-class MessageScreen extends StatelessWidget {
+class MessageScreen extends StatefulWidget {
+  @override
+  _MessageScreenState createState() => _MessageScreenState();
+}
+
+class _MessageScreenState extends State<MessageScreen> {
+  TextEditingController _textEditingController = TextEditingController();
+  List<String> _messages = [];
+  Stream<String> _messageStream;
+
+  void _sendMessage(String message) async {
+    try {
+      await newclient.publishMessage(message, 'Dart/Mqtt_client/testtopic');
+      setState(() {
+        _messages.add(message);
+      });
+    } catch (e) {
+      setState(() {
+        _messages.add('Error publishing message: $e');
+        print('Error publishing message: $e');
+      });
+    }
+
+    _textEditingController.clear();
+  }
+
+  Widget _buildMessageList() {
+    return ListView.builder(
+      itemCount: _messages.length,
+      itemBuilder: (context, index) {
+        return ListTile(
+          title: Text(_messages[index]),
+        );
+      },
+    );
+  }
+
+  Widget _buildTextComposer() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8.0),
+      child: Row(
+        children: [
+          Flexible(
+            child: TextField(
+              controller: _textEditingController,
+              decoration: InputDecoration.collapsed(
+                hintText: 'Type a message',
+              ),
+            ),
+          ),
+          IconButton(
+            icon: Icon(Icons.send),
+            onPressed: () {
+              _sendMessage(_textEditingController.text);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _messageStream = newclient.subscribeToTopic('Dart/Mqtt_client/testtopic');
+    _messageStream?.listen((message) {
+      setState(() {
+        _messages.add(message);
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Second Page'),
+        title: Text('Messages'),
       ),
-      body: Center(
-        child: ElevatedButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          child: Text('Go back!'),
-        ),
+      body: Column(
+        children: [
+          Expanded(
+            child: _buildMessageList(),
+          ),
+          Divider(height: 1.0),
+          _buildTextComposer(),
+        ],
       ),
     );
-  }
-}
-
-// connection states for easy identification
-enum MqttCurrentConnectionState {
-  IDLE,
-  CONNECTING,
-  CONNECTED,
-  DISCONNECTED,
-  ERROR_WHEN_CONNECTING
-}
-
-enum MqttSubscriptionState { IDLE, SUBSCRIBED }
-
-class MQTTClientWrapper {
-  MqttServerClient client;
-
-  MqttCurrentConnectionState connectionState = MqttCurrentConnectionState.IDLE;
-  MqttSubscriptionState subscriptionState = MqttSubscriptionState.IDLE;
-
-  void prepareMqttClient(
-      String username, String password, String host, int port) async {
-    // Check if the username and password are empty if so setup the client without
-    // authentication
-
-    if (username.isEmpty && password.isEmpty) {
-      _setupMqttClientWithoutAuth(host, port);
-    } else {
-      _setupMqttClientWithAuth(username, host, port);
-    }
-
-    // Set a unique identifier for the client
-    final uniqueIdentifier =
-        'myClientId-${DateTime.now().millisecondsSinceEpoch}';
-    client.clientIdentifier = uniqueIdentifier;
-
-    // check the if the username and password are empty if so connect to the client without
-    // authentication
-
-    if (username.isEmpty && password.isEmpty) {
-      await _connectClientWithoutAuth();
-    } else {
-      await _connectClientWithAuth(username, password);
-    }
-
-    _subscribeToTopic('Dart/Mqtt_client/testtopic');
-    _publishMessage('Hello');
-  }
-
-  Future<void> _connectClientWithAuth(String username, String password) async {
-    try {
-      print('client connecting....');
-      connectionState = MqttCurrentConnectionState.CONNECTING;
-      await client.connect(username, password);
-    } on Exception catch (e) {
-      print('client exception - $e');
-      connectionState = MqttCurrentConnectionState.ERROR_WHEN_CONNECTING;
-      client.disconnect();
-    }
-
-    if (client.connectionStatus.state == MqttConnectionState.connected) {
-      connectionState = MqttCurrentConnectionState.CONNECTED;
-      print('client connected');
-    } else {
-      print(
-          'ERROR client connection failed - disconnecting, status is ${client.connectionStatus}');
-      connectionState = MqttCurrentConnectionState.ERROR_WHEN_CONNECTING;
-      client.disconnect();
-    }
-  }
-
-  Future<void> _connectClientWithoutAuth() async {
-    try {
-      print('client connecting....');
-      connectionState = MqttCurrentConnectionState.CONNECTING;
-      await client.connect();
-    } on Exception catch (e) {
-      print('client exception - $e');
-      connectionState = MqttCurrentConnectionState.ERROR_WHEN_CONNECTING;
-      client.disconnect();
-    }
-
-    if (client.connectionStatus.state == MqttConnectionState.connected) {
-      connectionState = MqttCurrentConnectionState.CONNECTED;
-      print('client connected');
-    } else {
-      print(
-          'ERROR client connection failed - disconnecting, status is ${client.connectionStatus}');
-      connectionState = MqttCurrentConnectionState.ERROR_WHEN_CONNECTING;
-      client.disconnect();
-    }
-  }
-
-  void _setupMqttClientWithAuth(String username, String host, int port) {
-    client = MqttServerClient.withPort(host, username, port);
-    client.secure = true;
-    client.securityContext = SecurityContext.defaultContext;
-    client.keepAlivePeriod = 20;
-    client.onDisconnected = _onDisconnected;
-    client.onConnected = _onConnected;
-    client.onSubscribed = _onSubscribed;
-  }
-
-  void _setupMqttClientWithoutAuth(String host, int port) {
-    client = MqttServerClient.withPort(host, '', port);
-    client.keepAlivePeriod = 20;
-    client.onDisconnected = _onDisconnected;
-    client.onConnected = _onConnected;
-    client.onSubscribed = _onSubscribed;
-  }
-
-  void _subscribeToTopic(String topicName) {
-    print('Subscribing to the $topicName topic');
-    client.subscribe(topicName, MqttQos.atMostOnce);
-
-    // print the message when it is received
-    client.updates.listen((List<MqttReceivedMessage<MqttMessage>> c) {
-      final MqttPublishMessage recMess = c[0].payload;
-      var message =
-          MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
-
-      print('YOU GOT A NEW MESSAGE:');
-      print(message);
-    });
-  }
-
-  void _publishMessage(String message) {
-    final MqttClientPayloadBuilder builder = MqttClientPayloadBuilder();
-    builder.addString(message);
-
-    print(
-        'Publishing message "$message" to topic ${'Dart/Mqtt_client/testtopic'}');
-    client.publishMessage(
-        'Dart/Mqtt_client/testtopic', MqttQos.exactlyOnce, builder.payload);
-  }
-
-  // callbacks for different events
-  void _onSubscribed(String topic) {
-    print('Subscription confirmed for topic $topic');
-    subscriptionState = MqttSubscriptionState.SUBSCRIBED;
-  }
-
-  void _onDisconnected() {
-    print('OnDisconnected client callback - Client disconnection');
-    connectionState = MqttCurrentConnectionState.DISCONNECTED;
-  }
-
-  void _onConnected() {
-    connectionState = MqttCurrentConnectionState.CONNECTED;
-    print('OnConnected client callback - Client connection was sucessful');
   }
 }
