@@ -7,6 +7,7 @@ void main() {
 }
 
 MQTTClientWrapper newclient;
+var topic;
 
 class MyApp extends StatelessWidget {
   @override
@@ -32,6 +33,7 @@ class _MyHomePageState extends State<MyHomePage> {
   String _password;
   String _host;
   int _port;
+  String _topic;
 
   @override
   Widget build(BuildContext context) {
@@ -92,6 +94,14 @@ class _MyHomePageState extends State<MyHomePage> {
                   _port = int.parse(value);
                 },
               ),
+              TextFormField(
+                decoration: InputDecoration(
+                  hintText: 'Enter your topic',
+                ),
+                onSaved: (value) {
+                  _topic = value;
+                },
+              ),
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16.0),
                 child: ElevatedButton(
@@ -103,6 +113,9 @@ class _MyHomePageState extends State<MyHomePage> {
                       print('Password: $_password');
                       print('Host: $_host');
                       print('Port: $_port');
+                      print('Topic: $_topic');
+
+                      topic = _topic;
 
                       newclient = new MQTTClientWrapper();
                       newclient.prepareMqttClient(
@@ -143,7 +156,7 @@ class _MessageScreenState extends State<MessageScreen> {
 
   void _sendMessage(String message) async {
     try {
-      await newclient.publishMessage(message, 'Dart/Mqtt_client/testtopic');
+      await newclient.publishMessage(message, topic);
       setState(() {
         _messages.add(message);
       });
@@ -195,7 +208,7 @@ class _MessageScreenState extends State<MessageScreen> {
   @override
   void initState() {
     super.initState();
-    _messageStream = newclient.subscribeToTopic('Dart/Mqtt_client/testtopic');
+    _messageStream = newclient.subscribeToTopic(topic);
     _messageStream?.listen((message) {
       setState(() {
         _messages.add(message);
