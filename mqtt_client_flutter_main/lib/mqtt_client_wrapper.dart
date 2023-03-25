@@ -109,9 +109,17 @@ class MQTTClientWrapper {
   }
 
   Stream<String> subscribeToTopic(String topicName) {
+    if (client.connectionStatus.state != MqttConnectionState.connected) {
+      print('ERROR: client is not connected');
+      return null;
+    }
+
     print('Subscribing to the $topicName topic');
 
     final controller = StreamController<String>();
+
+    // q: write the code to subscribe to the topic after the connection is established
+    client.subscribe(topicName, MqttQos.exactlyOnce); //mostOnce
 
     // Set up a listener to receive incoming messages
     client.updates.listen((List<MqttReceivedMessage<MqttMessage>> c) {
@@ -122,11 +130,6 @@ class MQTTClientWrapper {
       print('Received message: $message');
       controller.add(message); // Add the received message to the stream
     });
-
-    // Wait for the client to connect before subscribing to the topic
-    client.onConnected = () {
-      client.subscribe(topicName, MqttQos.atMostOnce);
-    };
 
     return controller.stream;
   }
