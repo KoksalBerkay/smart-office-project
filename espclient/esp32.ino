@@ -3,7 +3,7 @@
 
 #define PIR_SENSOR 13
 #define DHT_PIN 2
-#define relayPin 12
+#define RELAY_PIN 12
 #define LDR_PIN 15
 
 char* topics[] = {"temp", "light", "motion", "humidity"};
@@ -16,11 +16,31 @@ int lightData;
 
 int lastReconnectAttempt = 0;
 
+void callback(char* topic, byte* payload, unsigned int length) {
+
+  char* d = (char*)malloc(length + 1);
+  d = (char*)payload; d[length] = 0;
+  String data(d);
+
+  String valueStr = data.substring(0 ,data.indexOf('/'));
+  String thresStr = data.substring(data.indexOf('/')+1 ,data.indexOf('/',data.indexOf('/')+1));
+  String statStr = data.substring(data.lastIndexOf('/')+1);
+  
+  Serial.print("Topic : ");
+  Serial.print(topic);
+  Serial.print(" , Recived Data : ");
+  Serial.println(data);
+
+  if(topic == "temp"){
+    tempThreshold = thresStr.toInt();
+  } 
+}
+
 void setup() {
   pinMode(PIR_SENSOR, INPUT);
   pinMode(LDR_PIN, INPUT);
   pinMode(DHT_PIN, INPUT);
-  pinMode(relayPin, OUTPUT);
+  pinMode(RELAY_PIN, OUTPUT);
   Serial.begin(9600);
   
   setupMQTT();
@@ -40,7 +60,7 @@ void loop() {
   Serial.println(lightData);
   Serial.print("DHT : ");
   Serial.println(tempData);
-  digitalWrite(relayPin, pirData);
+  digitalWrite(RELAY_PIN, pirData);
 
   
  
@@ -56,7 +76,8 @@ void loop() {
   } else {
     // Client connected
  
-    publishData("temp", tempData, tempThreshold, true);
+    //publishData("temp", tempData, tempThreshold, true);
+    publishData("temp", 22, 25, true);
     
 
     
@@ -65,11 +86,5 @@ void loop() {
   }
   
 
-
-
-
-  
-
-  
 
 }
