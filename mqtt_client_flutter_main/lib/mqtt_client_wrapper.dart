@@ -15,7 +15,7 @@ enum MqttCurrentConnectionState {
 enum MqttSubscriptionState { IDLE, SUBSCRIBED }
 
 class MQTTClientWrapper {
-  MqttServerClient client;
+  late MqttServerClient client;
 
   MqttCurrentConnectionState connectionState = MqttCurrentConnectionState.IDLE;
   MqttSubscriptionState subscriptionState = MqttSubscriptionState.IDLE;
@@ -57,7 +57,7 @@ class MQTTClientWrapper {
       client.disconnect();
     }
 
-    if (client.connectionStatus.state == MqttConnectionState.connected) {
+    if (client.connectionStatus?.state == MqttConnectionState.connected) {
       connectionState = MqttCurrentConnectionState.CONNECTED;
       print('client connected');
     } else {
@@ -79,7 +79,7 @@ class MQTTClientWrapper {
       client.disconnect();
     }
 
-    if (client.connectionStatus.state == MqttConnectionState.connected) {
+    if (client.connectionStatus?.state == MqttConnectionState.connected) {
       connectionState = MqttCurrentConnectionState.CONNECTED;
       print('client connected');
     } else {
@@ -108,8 +108,8 @@ class MQTTClientWrapper {
     client.onSubscribed = _onSubscribed;
   }
 
-  Stream<String> subscribeToTopic(String topicName) {
-    if (client.connectionStatus.state != MqttConnectionState.connected) {
+  Stream<String>? subscribeToTopic(String topicName) {
+    if (client.connectionStatus?.state != MqttConnectionState.connected) {
       print('ERROR: client is not connected');
       return null;
     }
@@ -122,8 +122,9 @@ class MQTTClientWrapper {
     client.subscribe(topicName, MqttQos.exactlyOnce); //mostOnce
 
     // Set up a listener to receive incoming messages
-    client.updates.listen((List<MqttReceivedMessage<MqttMessage>> c) {
-      final MqttPublishMessage recMess = c[0].payload;
+    client.updates?.listen((List<MqttReceivedMessage<MqttMessage>> c) {
+      final MqttPublishMessage recMess = c[0].payload as MqttPublishMessage;
+
       final message =
           MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
 
@@ -140,7 +141,7 @@ class MQTTClientWrapper {
     builder.addString(message);
 
     print('Publishing message "$message" to topic ${topicName}');
-    client.publishMessage(topicName, MqttQos.exactlyOnce, builder.payload);
+    client.publishMessage(topicName, MqttQos.exactlyOnce, builder.payload!);
   }
 
   // callbacks for different events

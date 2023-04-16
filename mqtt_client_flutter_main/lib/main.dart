@@ -5,9 +5,6 @@ void main() {
   runApp(MyApp());
 }
 
-MQTTClientWrapper newclient;
-var topic;
-
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -16,23 +13,26 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(),
+      home: LoginPage(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
+late MQTTClientWrapper newclient;
+var topic;
+
+class LoginPage extends StatefulWidget {
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  _LoginPageState createState() => _LoginPageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
-  String _username;
-  String _password;
-  String _host;
-  int _port;
-  String _topic;
+  late String _username;
+  late String _password;
+  late String _host;
+  late int _port;
+  late String _topic;
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +52,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   hintText: 'Enter your username',
                 ),
                 onSaved: (value) {
-                  _username = value;
+                  _username = value!;
                 },
               ),
               TextFormField(
@@ -60,7 +60,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   hintText: 'Enter your password',
                 ),
                 onSaved: (value) {
-                  _password = value;
+                  _password = value!;
                 },
               ),
               TextFormField(
@@ -69,13 +69,13 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
                 keyboardType: TextInputType.number,
                 validator: (value) {
-                  if (value.isEmpty) {
+                  if (value!.isEmpty) {
                     return 'Please enter your host';
                   }
                   return null;
                 },
                 onSaved: (value) {
-                  _host = value;
+                  _host = value!;
                 },
               ),
               TextFormField(
@@ -84,13 +84,13 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
                 keyboardType: TextInputType.number,
                 validator: (value) {
-                  if (value.isEmpty) {
+                  if (value!.isEmpty) {
                     return 'Please enter your port';
                   }
                   return null;
                 },
                 onSaved: (value) {
-                  _port = int.parse(value);
+                  _port = int.parse(value!);
                 },
               ),
               TextFormField(
@@ -98,15 +98,15 @@ class _MyHomePageState extends State<MyHomePage> {
                   hintText: 'Enter your topic',
                 ),
                 onSaved: (value) {
-                  _topic = value;
+                  _topic = value!;
                 },
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16.0),
                 child: ElevatedButton(
                   onPressed: () {
-                    if (_formKey.currentState.validate()) {
-                      _formKey.currentState.save();
+                    if (_formKey.currentState!.validate()) {
+                      _formKey.currentState?.save();
                       // do something with the form data
                       print('Username: $_username');
                       print('Password: $_password');
@@ -121,7 +121,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           newclient, _username, _password, _host, _port);
 
                       // clear the form
-                      _formKey.currentState.reset();
+                      _formKey.currentState?.reset();
 
                       // navigate to the next page
                       Navigator.push(
@@ -145,7 +145,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
 void _prepareMqttClient(MQTTClientWrapper client, String username,
     String password, String host, int port) async {
-  await client.prepareMqttClient(username, password, host, port);
+  client.prepareMqttClient(username, password, host, port);
   await client.connectionState == MqttCurrentConnectionState.CONNECTED;
 }
 
@@ -157,11 +157,11 @@ class MessageScreen extends StatefulWidget {
 class _MessageScreenState extends State<MessageScreen> {
   TextEditingController _textEditingController = TextEditingController();
   List<String> _messages = [];
-  Stream<String> _messageStream = newclient.subscribeToTopic(topic);
+  Stream<String>? _messageStream = newclient.subscribeToTopic(topic);
 
   void _sendMessage(String message) async {
     try {
-      await newclient.publishMessage(message, topic);
+      newclient.publishMessage(message, topic);
     } catch (e) {
       setState(() {
         _messages.add('Error publishing message: $e');
@@ -181,7 +181,7 @@ class _MessageScreenState extends State<MessageScreen> {
       _messageStream = newclient.subscribeToTopic(topic);
     }
     print('Stream is not null');
-    _messageStream.listen((message) {
+    _messageStream?.listen((message) {
       setState(() {
         _messages.add(message);
       });
