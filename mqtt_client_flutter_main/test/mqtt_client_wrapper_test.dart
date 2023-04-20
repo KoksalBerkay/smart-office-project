@@ -12,10 +12,10 @@ void main() {
     String topicName = 'temp';
 
     // Prepare the client for connection
-    await newclient.prepareMqttClient(username, password, host, port);
+    newclient.prepareMqttClient(username, password, host, port);
 
     // Subscribe to a topic
-    Stream<String> topicStream = newclient.subscribeToTopic(topicName);
+    Stream<String>? topicStream = newclient.subscribeToTopic(topicName);
 
     // Publish a message to the topic
     newclient.publishMessage('test message', topicName);
@@ -23,7 +23,7 @@ void main() {
     // Wait for the message to be received
     await Future.delayed(
         Duration(seconds: 1)); // Add a delay to ensure message is received
-    String receivedMessage = await topicStream.first;
+    String receivedMessage = await topicStream!.first;
 
     expect(receivedMessage, 'test message');
   });

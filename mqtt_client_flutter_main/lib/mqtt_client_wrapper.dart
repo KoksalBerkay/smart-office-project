@@ -123,6 +123,7 @@ class MQTTClientWrapper {
 
     // Set up a listener to receive incoming messages
     client.updates?.listen((List<MqttReceivedMessage<MqttMessage>> c) {
+
       final MqttPublishMessage recMess = c[0].payload as MqttPublishMessage;
 
       final message =
