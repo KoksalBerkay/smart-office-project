@@ -3,40 +3,43 @@
 
 WiFiClient wifiClient;
 PubSubClient client(wifiClient);
-const char* ssid = "A52S"; const char* pass = "12345678";
-IPAddress server(192, 168, 6, 205);
+IPAddress server(192, 168, 43, 57);
 
 
 
-void callback(char* topic, byte* payload, unsigned int length) {
-  Serial.print("Message arrived [");
-  Serial.print(topic);
-  Serial.print("] ");
-  for (int i=0;i<length;i++) {
-    Serial.print((char)payload[i]);
-  }
-  Serial.println(); // 
-}
+void callback(char* topic, byte* payload, unsigned int length);
 
 
 bool publishData(char* topic, float sensorData, float threshold, boolean stat){
 
   char topicData[50];
+  bool ret;
   
   sprintf(topicData,"%f/%f/%d",sensorData,threshold,stat);
-  return client.publish(topic, topicData); // AX0 AX1 AX2 AX4 AX5 AX6 AX7 AX8
+
+  client.unsubscribe(topic);
+  ret = client.publish(topic, topicData); // AX0 AX1 AX2 AX4 AX5 AX6 AX7 AX8
+  client.subscribe(topic);
+  return ret;
 }
 
 bool publishData(char* topic, int sensorData, int threshold, boolean stat){
 
   char topicData[50];
+  bool ret;
   
   sprintf(topicData,"%d/%d/%d",sensorData,threshold,stat);
-  return client.publish(topic, topicData); // AX0 AX1 AX2 AX4 AX5 AX6 AX7 AX8
+  
+  client.unsubscribe(topic);
+  ret= client.publish(topic, topicData); // AX0 AX1 AX2 AX4 AX5 AX6 AX7 AX8
+  client.subscribe(topic);
+
+  return ret;
 }
 
+
 boolean reconnect(char* topics[]) {
-  Serial.println("Reconnect...");
+  Serial.print("Reconnect...");
   if (client.connect("arduinoClient")) {
     // Once connected, publish an announcement...
     // ... and resubscribe
@@ -44,6 +47,9 @@ boolean reconnect(char* topics[]) {
       client.subscribe(topics[i]);
     }
   }
+
+  Serial.print("Error Code :"); Serial.println(client.state());
+
   return client.connected();
 
 
@@ -70,7 +76,7 @@ boolean reconnect(char* topics[]) {
 //  }
 }
 
-void setup_wifi() {
+void setup_wifi(const char* ssid ,const char* pass) {
   delay(10);
   // We start by connecting to a WiFi network
   Serial.println();
@@ -90,9 +96,9 @@ void setup_wifi() {
   Serial.println(WiFi.localIP());
 }
 
-void setupMQTT() {
-  setup_wifi();
-  client.setServer(server, 1883);
+void setupMQTT(String ssid ,String pass) {
+  setup_wifi(ssid.c_str() ,pass.c_str());
+  client.setServer("192.168.43.57", 1883);
   client.setCallback(callback);
   delay(1500);
 }
