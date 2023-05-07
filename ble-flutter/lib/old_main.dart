@@ -6,18 +6,6 @@ import 'home_page.dart';
 
 void main() => runApp(const MyApp());
 
-//TODO: Disconnect from the ble device and navigate to the home_page.dart after we have sent and received data from the device
-//TODO: Automatically fill the ssid field with the ssid of the connected wifi using a library
-
-bool isConnecting = false;
-bool isConnected = false;
-
-bool isSending = false;
-bool isReceiving = false;
-
-bool isSent = false;
-bool isReceived = false;
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -27,20 +15,20 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
-        home: BleHomePage(title: 'Flutter BLE Demo'),
+        home: HomePage(title: 'Flutter BLE Demo'),
       );
 }
 
-class BleHomePage extends StatefulWidget {
-  const BleHomePage({super.key, required this.title});
+class HomePage extends StatefulWidget {
+  const HomePage({super.key, required this.title});
 
   final String title;
 
   @override
-  State<BleHomePage> createState() => _BleHomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
-class _BleHomePageState extends State<BleHomePage> {
+class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<BluetoothState>(
@@ -60,6 +48,11 @@ class _BleHomePageState extends State<BleHomePage> {
   }
 }
 
+//TODO: Create a widget for the screen after we have connected to the device
+//TODO: Create another widget for sending and receiving data from the device
+//TODO: Navigate to the home_page.dart after we have sent and received data from the device
+//TODO: Automatically fill the ssid field with the ssid of the connected wifi using a library
+
 class BlePage extends StatefulWidget {
   BlePage({Key? key, required this.title}) : super(key: key);
 
@@ -76,6 +69,12 @@ class _BlePageState extends State<BlePage> {
   late String ssid;
   late String pass;
 
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   _scanconnect();
+  // }
+
   _scanconnect() async {
     String teamManufacturerData = "{16971: [77, 71]}";
     String deviceName = 'ESPROOM32-XX';
@@ -90,23 +89,28 @@ class _BlePageState extends State<BlePage> {
         print('->' + cleanData + '<-');
 
         if (cleanData == teamManufacturerData) {
-          isConnecting = true;
-
           flutterBlue.stopScan();
           print('Scan stopped');
           mydevice = r.device;
           await mydevice?.connect(
               autoConnect: true, timeout: const Duration(seconds: 10));
 
-          if (mydevice!.state == BluetoothDeviceState.connected) {
-            isConnected = true;
+          if (mydevice!.state == BluetoothDeviceState.connected &&
+              ssid != null &&
+              pass != null) {
+            print('connected to device and ssid and pass is not null');
             _characteristicUpdater(mydevice!);
-            print('connected to device');
-            break;
+          } else if (mydevice!.state == BluetoothDeviceState.connected &&
+              ssid == null &&
+              pass == null) {
+            print('connected to device and ssid and pass is null');
           } else if (mydevice!.state != BluetoothDeviceState.connected) {
             print('not connected to device');
-            continue;
           }
+
+          // _characteristicUpdater(mydevice!);
+          print('connected to device');
+          break;
         }
       }
       print('for loop work');
@@ -120,15 +124,15 @@ class _BlePageState extends State<BlePage> {
         if (service.uuid.toString() == "c2302aa0-0548-49ff-a10a-e421fdb311ff" &&
             characteristic.uuid.toString() ==
                 "4934c8ce-bce0-417c-b613-14f9f24da803") {
-          isSending = true;
-          await characteristic.write(ssid.codeUnits); //added await
+          // String ssid = "a";
+          characteristic.write(ssid.codeUnits);
           print("Sent the wifi ssid successfully");
         }
         if (service.uuid.toString() == "c2302aa0-0548-49ff-a10a-e421fdb311ff" &&
             characteristic.uuid.toString() ==
                 "7dec32af-0afe-4718-9c5b-a0c120bab609") {
-          isSending = true;
-          await characteristic.write(pass.codeUnits); //added await
+          // String pass = "b";
+          characteristic.write(pass.codeUnits);
           print("Sent the wifi password successfully");
         }
         // the code below is for reading the uuid of the device
@@ -136,7 +140,6 @@ class _BlePageState extends State<BlePage> {
         if (service.uuid.toString() == "c2302aa0-0548-49ff-a10a-e421fdb311ff" &&
             characteristic.uuid.toString() ==
                 "e91a0da9-9048-4b87-99a9-01a8a62b65bf") {
-          isReceiving = true;
           String uuid;
           await characteristic.read().then((value) {
             uuid = String.fromCharCodes(value);
@@ -218,120 +221,18 @@ class ScanningScreen extends StatefulWidget {
 class _ScanningScreenState extends State<ScanningScreen> {
   @override
   Widget build(BuildContext context) {
-    if (isConnecting) {
-      Navigator.push(context,
-          MaterialPageRoute(builder: (context) => const ConnectingScreen()));
-    }
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Bluetooth Screen"),
+        title: const Text("Bluetooth Scanning Screen"),
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
+        children: [
           Align(
               alignment: Alignment.center,
               child: Text("Scanning devices...",
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold)))
-        ],
-      ),
-    );
-  }
-}
-
-class ConnectingScreen extends StatefulWidget {
-  const ConnectingScreen({super.key});
-
-  @override
-  State<ConnectingScreen> createState() => _ConnectingScreenState();
-}
-
-class _ConnectingScreenState extends State<ConnectingScreen> {
-  @override
-  Widget build(BuildContext context) {
-    if (isConnected) {
-      isConnecting = false;
-      Navigator.push(context,
-          MaterialPageRoute(builder: (context) => const ConnectedScreen()));
-    }
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Bluetooth Screen"),
-      ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
-          Align(
-              alignment: Alignment.center,
-              child: Text("Connecting to the device...",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold))),
-        ],
-      ),
-    );
-  }
-}
-
-class ConnectedScreen extends StatefulWidget {
-  const ConnectedScreen({super.key});
-
-  @override
-  State<ConnectedScreen> createState() => _ConnectedScreenState();
-}
-
-class _ConnectedScreenState extends State<ConnectedScreen> {
-  @override
-  Widget build(BuildContext context) {
-    if (isSending || isReceiving) {
-      // this might not work maybe && instead of ||
-      Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => const CharacteristicUpdatingScreen()));
-    }
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Bluetooth Screen"),
-      ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
-          Align(
-              alignment: Alignment.center,
-              child: Text("Connected to the device",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold))),
-        ],
-      ),
-    );
-  }
-}
-
-class CharacteristicUpdatingScreen extends StatefulWidget {
-  const CharacteristicUpdatingScreen({super.key});
-
-  @override
-  State<CharacteristicUpdatingScreen> createState() =>
-      _CharacteristicUpdatingScreenState();
-}
-
-class _CharacteristicUpdatingScreenState
-    extends State<CharacteristicUpdatingScreen> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Bluetooth Screen"),
-      ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
-          Align(
-              alignment: Alignment.center,
-              child: Text("Connected to the device",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold))),
         ],
       ),
     );
