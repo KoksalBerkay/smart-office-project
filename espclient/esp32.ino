@@ -1,20 +1,30 @@
 #include <DHT.h>
 #include "wificonnection.h"
+#include "pair.h"
 
-#define PIR_SENSOR 13
+#define PIR_SENSOR 4
 #define DHT_PIN 2
-#define RELAY_PIN 12
 #define LDR_PIN 15
+
+#define RELAY_PIN 18
+#define LIGHT_PIN 19
+
+
 
 char* topics[] = {"temp", "light", "motion", "humidity"};
 
 DHT dht(DHT_PIN,DHT11);
+
 int pirData;
+int motionlessTimeThreshold = 600000;
 float tempData;
 float tempThreshold = 26;
 int lightData;
+int lightThreshold = 500;
+
 
 int lastReconnectAttempt = 0;
+int lastMotionTime = 0;
 
 void callback(char* topic, byte* payload, unsigned int length) {
 
@@ -28,28 +38,53 @@ void callback(char* topic, byte* payload, unsigned int length) {
   
   Serial.print("Topic : ");
   Serial.print(topic);
+  Serial.print(" , Thres : ");
+  Serial.print(thresStr.toInt());
   Serial.print(" , Recived Data : ");
   Serial.println(data);
 
-  if(topic == "temp"){
-    tempThreshold = thresStr.toInt();
+  if(!strcmp(topic ,"temp")){
+    tempThreshold = thresStr.toFloat();
+
+  } 
+  else if(!strcmp(topic ,"light")){
+    lightThreshold = thresStr.toInt();
+  } 
+  else if(!strcmp(topic ,"motion")){
+    motionlessTimeThreshold = thresStr.toInt();
   } 
 }
+
 
 void setup() {
   pinMode(PIR_SENSOR, INPUT);
   pinMode(LDR_PIN, INPUT);
   pinMode(DHT_PIN, INPUT);
   pinMode(RELAY_PIN, OUTPUT);
-  Serial.begin(9600);
+  Serial.begin(115200);
   
-  setupMQTT();
+
+  String ssid;
+  String pass;
+  String uuid;
+  
+  Serial.println("Pairing");
+  Pair(&ssid ,&pass ,&uuid);
+
+  Serial.println("Pairing done");
+  Serial.println("SSID : " + ssid);
+  Serial.println("Pass : " + pass);
+  Serial.println("UUID : " + uuid);
+  setupMQTT(ssid, pass);
   
   dht.begin();
 }
 
+
+
 void loop() {
-  delay(1000);
+
+  
   pirData = digitalRead(PIR_SENSOR);
   lightData = analogRead(LDR_PIN);
   tempData = dht.readTemperature();
@@ -60,9 +95,18 @@ void loop() {
   Serial.println(lightData);
   Serial.print("DHT : ");
   Serial.println(tempData);
-  digitalWrite(RELAY_PIN, pirData);
+  //digitalWrite(RELAY_PIN, pirData);
 
-  
+
+
+  lastMotionTime = pirData ? millis() : lastMotionTime;
+  int motionlessTime = millis() - lastMotionTime;
+
+  digitalWrite(RELAY_PIN , tempData < tempThreshold ? 1 : 0);
+
+  digitalWrite(LIGHT_PIN , (lightData < lightThreshold) && (motionlessTime < motionlessTimeThreshold) ? 1 : 0);
+
+
  
   if (!client.connected()) {
     long now = millis();
@@ -76,15 +120,17 @@ void loop() {
   } else {
     // Client connected
  
-    //publishData("temp", tempData, tempThreshold, true);
-    publishData("temp", 22, 25, true);
-    
+    publishData("temp", tempData, tempThreshold, true);
+    Serial.println(tempThreshold);
+    //publishData("temp", 22, 25, true);
+    //publishData("motion" ,motionlessTime ,motionlessTimeThreshold ,true);
+    //publishData("light" ,lightData ,lightThreshold, true);
 
     
     
     client.loop();
   }
   
-
-
+  
+  delay(100);
 }
