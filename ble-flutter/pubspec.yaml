@@ -39,8 +39,8 @@ dependencies:
   mqtt_client: ^9.8.1
   ini: ^2.1.0
   percent_indicator: ^4.2.3
-  network_info_plus: ^3.0.5
   flutter_spinkit: ^5.2.0
+  network_info_plus: ^3.0.5
 
 dev_dependencies:
   flutter_test:

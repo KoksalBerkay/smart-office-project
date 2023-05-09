@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:mqtt_client/mqtt_client.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'main.dart';
 import 'mqtt_client_wrapper.dart';
@@ -27,37 +26,26 @@ class _TemperaturePageState extends State<TemperaturePage> {
   @override
   void initState() {
     super.initState();
-    mqttClientWrapper.prepareMqttClient("", "", "192.168.43.254", 1883);
+    mqttClientWrapper.prepareMqttClient("", "", "192.168.0.108", 1883);
 
     // wait for the client to connect
-    Future.delayed(Duration(seconds: 1)).then((_) {
+    Future.delayed(const Duration(seconds: 1)).then((_) {
       print("subscribing...");
-      mqttClientWrapper
-          .subscribeToTopic("temp" + uuid.toString())
-          ?.listen((message) {
+      mqttClientWrapper.subscribeToTopic("temp$uuid")?.listen((message) {
         setState(() {
           print("Message: " + message);
 
-          List<String> message_list = message.split('/');
+          List<String> messageList = message.split('/');
 
-          actualValue = message_list[0];
+          actualValue = messageList[0];
 
-          // final pattern = RegExp(r'(\d+)\/(\d+)\/(\w+)');
-          // final match = pattern.firstMatch(message);
-          // if (match != null) {
-          // actualValue = match.group(1);
-          print("Actual Value: " + actualValue.toString());
           heat = double.parse(actualValue!);
+          thresholdValue = double.parse(messageList[1]);
+          state = messageList[2];
+
           print("Heat: " + heat.toString());
-          thresholdValue = double.parse(message_list[1]);
-          state = message_list[2];
-          // state = match.group(3);
-          print('Actual Value: $actualValue');
           print('Threshold Value: $thresholdValue');
           print('State: $state');
-          // } else {
-          //   print('Invalid heat value');
-          // }
         });
       });
     });
@@ -113,10 +101,8 @@ class _TemperaturePageState extends State<TemperaturePage> {
                       percent: thresholdValue / 30,
                       progressColor: Colors.indigo,
                       center: Text(
-                        '${actualValue}\u00B0' +
-                            '\n${thresholdValue}\u00B0' +
-                            '\n${state}',
-                        style: TextStyle(
+                        '${heat.toStringAsFixed(2)}\u00B0\n${thresholdValue.toStringAsFixed(2)}\u00B0\n$state',
+                        style: const TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
                         ),
@@ -153,29 +139,29 @@ class _TemperaturePageState extends State<TemperaturePage> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               IconButton(
-                                icon: Icon(Icons.remove),
+                                icon: const Icon(Icons.remove),
                                 onPressed: () {
                                   setState(() {
                                     if (thresholdValue > 0) {
                                       thresholdValue -= 0.5;
                                     }
                                     mqttClientWrapper.publishMessage(
-                                        '${heat}/${thresholdValue}/${state}',
-                                        'temp' + uuid.toString());
+                                        '$heat/$thresholdValue/$state',
+                                        'temp$uuid');
                                   });
                                 },
                               ),
                               const SizedBox(width: 24),
                               IconButton(
-                                icon: Icon(Icons.add),
+                                icon: const Icon(Icons.add),
                                 onPressed: () {
                                   setState(() {
                                     if (thresholdValue < 30) {
                                       thresholdValue += 0.5;
                                     }
                                     mqttClientWrapper.publishMessage(
-                                        '${heat}/${thresholdValue}/${state}',
-                                        'temp' + uuid.toString());
+                                        '$heat/$thresholdValue/$state',
+                                        'temp$uuid');
                                   });
                                 },
                               ),

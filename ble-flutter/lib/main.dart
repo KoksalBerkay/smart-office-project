@@ -3,6 +3,7 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'pages/bluetooth_page.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'home_page.dart';
+import 'package:network_info_plus/network_info_plus.dart';
 
 void main() => runApp(const MyApp());
 
@@ -17,9 +18,7 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
-        home: BleHomePage(
-          title: "BLE Page",
-        ),
+        home: const BleHomePage(title: "BLE Demo"),
       );
 }
 
@@ -42,7 +41,7 @@ class _BleHomePageState extends State<BleHomePage> {
         final state = snapshot.data;
         if (state == BluetoothState.on) {
           return BlePage(
-            title: 'Bluetooth Demo',
+            title: 'Bluetooth Page',
           );
         } else {
           return BluetoothOffScreen(state: state);
@@ -52,9 +51,6 @@ class _BleHomePageState extends State<BleHomePage> {
   }
 }
 
-//TODO: Create a widget for the screen after we have connected to the device
-//TODO: Create another widget for sending and receiving data from the device
-//TODO: Navigate to the home_page.dart after we have sent and received data from the device
 //TODO: Automatically fill the ssid field with the ssid of the connected wifi using a library
 
 class BlePage extends StatefulWidget {
@@ -73,15 +69,20 @@ class _BlePageState extends State<BlePage> {
   late String ssid;
   late String pass;
 
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   _scanconnect();
-  // }
+  @override
+  void initState() {
+    super.initState();
+    _initSSID();
+  }
+
+  @override
+  void dispose() {
+    _ssidController.dispose();
+    super.dispose();
+  }
 
   _scanconnect() async {
     String teamManufacturerData = "{16971: [77, 71]}";
-    String deviceName = 'ESPROOM32-XX';
     // Start scanning
     flutterBlue.startScan(timeout: const Duration(seconds: 2));
     print('start scan work');
@@ -139,6 +140,14 @@ class _BlePageState extends State<BlePage> {
     }
   }
 
+  final TextEditingController _ssidController = TextEditingController();
+  Future<void> _initSSID() async {
+    String? wifiName = await NetworkInfo().getWifiName();
+    if (wifiName != null) {
+      _ssidController.text = wifiName;
+    }
+  }
+
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
@@ -152,6 +161,7 @@ class _BlePageState extends State<BlePage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 TextFormField(
+                  controller: _ssidController,
                   decoration: const InputDecoration(
                     hintText: 'Enter your wifi ssid',
                   ),
@@ -190,7 +200,7 @@ class _BlePageState extends State<BlePage> {
                                 builder: (context) => ScanningScreen()));
                       }
                     },
-                    child: Text('Submit'),
+                    child: const Text('Submit'),
                   ),
                 ),
               ],
