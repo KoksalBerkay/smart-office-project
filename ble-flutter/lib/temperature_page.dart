@@ -150,7 +150,7 @@ class _TemperaturePageState extends State<TemperaturePage> {
                                       thresholdValue -= 0.5;
                                     mqttClientWrapper.publishMessage(
                                         '${actualValue}/${thresholdValue}/${state}',
-                                        'temp');
+                                        'temp' + uuid.toString());
                                   });
                                 },
                               ),
@@ -163,7 +163,7 @@ class _TemperaturePageState extends State<TemperaturePage> {
                                       thresholdValue += 0.5;
                                     mqttClientWrapper.publishMessage(
                                         '${actualValue}/${thresholdValue}/${state}',
-                                        'temp');
+                                        'temp' + uuid.toString());
                                   });
                                 },
                               ),
