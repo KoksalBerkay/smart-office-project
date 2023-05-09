@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mqtt_client/mqtt_client.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'main.dart';
 import 'mqtt_client_wrapper.dart';
@@ -31,23 +32,32 @@ class _TemperaturePageState extends State<TemperaturePage> {
     // wait for the client to connect
     Future.delayed(Duration(seconds: 1)).then((_) {
       print("subscribing...");
-      mqttClientWrapper.subscribeToTopic("temp" + uuid.toString())?.listen((message) {
+      mqttClientWrapper
+          .subscribeToTopic("temp" + uuid.toString())
+          ?.listen((message) {
         setState(() {
-          print(message);
+          print("Message: " + message);
 
-          final pattern = RegExp(r'(\d+)\/(\d+)\/(\w+)');
-          final match = pattern.firstMatch(message);
-          if (match != null) {
-            actualValue = match.group(1);
-            heat = double.parse(actualValue!);
-            thresholdValue = double.parse(match.group(2)!);
-            state = match.group(3);
-            print('Actual Value: $actualValue');
-            print('Threshold Value: $thresholdValue');
-            print('State: $state');
-          } else {
-            print('Invalid heat value');
-          }
+          List<String> message_list = message.split('/');
+
+          actualValue = message_list[0];
+
+          // final pattern = RegExp(r'(\d+)\/(\d+)\/(\w+)');
+          // final match = pattern.firstMatch(message);
+          // if (match != null) {
+          // actualValue = match.group(1);
+          print("Actual Value: " + actualValue.toString());
+          heat = double.parse(actualValue!);
+          print("Heat: " + heat.toString());
+          thresholdValue = double.parse(message_list[1]);
+          state = message_list[2];
+          // state = match.group(3);
+          print('Actual Value: $actualValue');
+          print('Threshold Value: $thresholdValue');
+          print('State: $state');
+          // } else {
+          //   print('Invalid heat value');
+          // }
         });
       });
     });
@@ -146,10 +156,11 @@ class _TemperaturePageState extends State<TemperaturePage> {
                                 icon: Icon(Icons.remove),
                                 onPressed: () {
                                   setState(() {
-                                    if (thresholdValue > 0)
+                                    if (thresholdValue > 0) {
                                       thresholdValue -= 0.5;
+                                    }
                                     mqttClientWrapper.publishMessage(
-                                        '${actualValue}/${thresholdValue}/${state}',
+                                        '${heat}/${thresholdValue}/${state}',
                                         'temp' + uuid.toString());
                                   });
                                 },
@@ -159,10 +170,11 @@ class _TemperaturePageState extends State<TemperaturePage> {
                                 icon: Icon(Icons.add),
                                 onPressed: () {
                                   setState(() {
-                                    if (thresholdValue < 30)
+                                    if (thresholdValue < 30) {
                                       thresholdValue += 0.5;
+                                    }
                                     mqttClientWrapper.publishMessage(
-                                        '${actualValue}/${thresholdValue}/${state}',
+                                        '${heat}/${thresholdValue}/${state}',
                                         'temp' + uuid.toString());
                                   });
                                 },
