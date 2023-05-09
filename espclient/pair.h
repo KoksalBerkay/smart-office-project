@@ -49,7 +49,7 @@ class CharacteristicCallback : public BLECharacteristicCallbacks {
         Serial.println(characterData);
 
       } else {
-        Serial.println("DATA RECIEVED BUT NOT FROM ONE OF THE WIFI CRED. CHARACTERISTICS.");
+        Serial.println("DATA RECIEVED BUT NOT FROM ONE OF THE WIFI CRED. CHARACTERISTICS. ==>\n" + String(pCharacteristic->getUUID().toString().c_str()));
       }
     }
 };
@@ -84,9 +84,8 @@ void startBluetooth() {
                   BLECharacteristic::PROPERTY_READ);
 
   uuid = StringUUIDGen();
-  Serial.println("UUID -> " + uuid);
   uuidCharacteristic->setValue(string(uuid.c_str())); 
-  
+  Serial.println("UUID -> " + uuid);
   ssidCharacteristic->setCallbacks(new CharacteristicCallback());
   passCharacteristic->setCallbacks(new CharacteristicCallback());
   
@@ -132,7 +131,7 @@ void Pair(String* ssid ,String* pass ,String* UUID ,bool reseteeprom = false ,un
     
     startBluetooth();
     while ((wifiSsid == 0 || wifiPass == 0) && (millis() - time) < timeOut) {                                                                                                                                                                                                                                                                                                                                                           
-      delay(500);
+      delay(50);
       
     }
     
@@ -142,7 +141,7 @@ void Pair(String* ssid ,String* pass ,String* UUID ,bool reseteeprom = false ,un
 
   }
 
-
+  delay(100);
   BLEDevice::stopAdvertising();
   BLEDevice::deinit();
   pref.end();
