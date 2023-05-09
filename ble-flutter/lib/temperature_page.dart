@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
+import 'main.dart';
 import 'mqtt_client_wrapper.dart';
 
 //TODO: Check the connection state and display a message if the connection is lost
@@ -25,12 +26,12 @@ class _TemperaturePageState extends State<TemperaturePage> {
   @override
   void initState() {
     super.initState();
-    mqttClientWrapper.prepareMqttClient("", "", "192.168.1.15", 1883);
+    mqttClientWrapper.prepareMqttClient("", "", "192.168.43.254", 1883);
 
     // wait for the client to connect
     Future.delayed(Duration(seconds: 1)).then((_) {
       print("subscribing...");
-      mqttClientWrapper.subscribeToTopic("temp")?.listen((message) {
+      mqttClientWrapper.subscribeToTopic("temp" + uuid.toString())?.listen((message) {
         setState(() {
           print(message);
 
