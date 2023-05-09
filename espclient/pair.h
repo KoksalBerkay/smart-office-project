@@ -7,7 +7,7 @@
 
 using namespace std;
 
-#define MANUFACTURER_NAME "zenci_schwanz"
+#define MANUFACTURER_NAME "KBMG"
 #define SERVICE_UUID "c2302aa0-0548-49ff-a10a-e421fdb311ff"
 #define CHARACTERISTIC_SSID_UUID "4934c8ce-bce0-417c-b613-14f9f24da803"
 #define CHARACTERISTIC_PASS_UUID "7dec32af-0afe-4718-9c5b-a0c120bab609"
