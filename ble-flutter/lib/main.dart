@@ -6,6 +6,8 @@ import 'home_page.dart';
 
 void main() => runApp(const MyApp());
 
+late String uuid;
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -104,6 +106,13 @@ class _BlePageState extends State<BlePage> {
     });
   }
 
+  void nav() {
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => const HomePage()));
+  }
+
   _characteristicUpdater(BluetoothDevice mydevice) async {
     List<BluetoothService> services = await mydevice.discoverServices();
     for (var service in services) {
@@ -119,9 +128,9 @@ class _BlePageState extends State<BlePage> {
           }
           if (char.uuid.toString() ==
                   "e91a0da9-9048-4b87-99a9-01a8a62b65bf") {
-            String uuid;
             await char.read().then((value) {
               uuid = String.fromCharCodes(value);
+              nav();
               print("The uuid is: $uuid");
             });
           }
@@ -178,7 +187,7 @@ class _BlePageState extends State<BlePage> {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => HomePage()));
+                                builder: (context) => ScanningScreen()));
                       }
                     },
                     child: Text('Submit'),
@@ -189,7 +198,11 @@ class _BlePageState extends State<BlePage> {
           ),
         ),
       );
+
+
 }
+
+
 
 class ScanningScreen extends StatefulWidget {
   const ScanningScreen({super.key});
