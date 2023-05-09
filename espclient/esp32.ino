@@ -2,7 +2,7 @@
 #include "wificonnection.h"
 #include "pair.h"
 #define PIR_SENSOR 4
-#define DHT_PIN 2
+#define DHT_PIN 5
 #define LDR_PIN 15
 #define RELAY_PIN 18
 #define LIGHT_PIN 19
@@ -25,7 +25,7 @@ int lightThreshold = 500;
 int lastReconnectAttempt = 0;
 int lastMotionTime = 0;
 void callback(char* topic, byte* payload, unsigned int length) {
-
+  Serial.println("Data from MQTT recieved.");
   char* d = (char*)malloc(length + 1);
   d = (char*)payload; d[length] = 0;
   String data(d);
@@ -67,20 +67,21 @@ void setup() {
   String uuid;
 
   Serial.println("Pairing");
-  Pair(&ssid , &pass , &uuid);
+  Pair(&ssid , &pass , &uuid, 1);
+
+  Serial.println("Pairing done");
+  Serial.println("SSID : " + ssid);
+  Serial.println("Pass : " + pass);
+  Serial.println("UUID : " + uuid);
+  dht.begin();
+  Serial.println("setup done");
   handler.setUuid(uuid);
-  handler.setServerIP("192.168.43.57");
+  handler.setServerIP("192.168.43.254");
   handler.setPort(1883);
   handler.setWifiPass(pass);
   handler.setWifiSsid(ssid);
   handler.setupWifi();
   handler.setupMQTT(callback);
-  Serial.println("Pairing done");
-  Serial.println("SSID : " + ssid);
-  Serial.println("Pass : " + pass);
-  Serial.println("UUID : " + uuid);
-  //  setupMQTT(ssid, pass);
-  dht.begin();
 }
 
 
@@ -122,13 +123,15 @@ void loop() {
     }
   } else {
     // Client connected
-
-    handler.publishData("temp", tempData, tempThreshold, true);
+    String topicName = "temp" + uuid;
+    Serial.println("Connecting topic name -> " + topicName);
+    handler.publishData(topicName.c_str(), tempData, tempThreshold, true);
     Serial.println(tempThreshold);
     //publishData("temp", 22, 25, true);
     //publishData("motion" ,motionlessTime ,motionlessTimeThreshold ,true);
     //publishData("light" ,lightData ,lightThreshold, true);
 
+    delay(1000);
 
 
     client.loop();
