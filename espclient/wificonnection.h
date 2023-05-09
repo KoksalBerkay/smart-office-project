@@ -8,11 +8,12 @@ PubSubClient client(wifiClient);
 
 class MqttHandler {
   private:
-    const char* serverIP;
+    String serverIP;
     uint16_t port;
     String uuid;
     String wifiPass;
     String wifiSsid;
+    
     //static void callback(char* topic, byte* payload, unsigned int length);
   public:
     void setUuid(String uuid);
@@ -22,7 +23,7 @@ class MqttHandler {
     void setWifiSsid(String wifiSsid);
     void setupWifi();
     void setupMQTT(void (*callback)(char*, byte*, unsigned int));
-    boolean publishData(char* topic, float sensorData, float threshold, boolean stat);
+    boolean publishData(const char* topic, float sensorData, float threshold, boolean stat);
     boolean reconnectTopics(char* topics[]);
 
     // void callback(char* topic, byte * payload, unsigned uint16_t length);
@@ -31,11 +32,11 @@ class MqttHandler {
 };
 
 void MqttHandler::setServerIP(String ipAddress) {
-  serverIP = ipAddress.c_str();
+  this->serverIP = ipAddress;
 }
 
 void MqttHandler::setPort(uint16_t port) {
-  port = port;
+  this->port = port;
 }
 
 void MqttHandler::setupWifi() {
@@ -58,33 +59,35 @@ void MqttHandler::setupWifi() {
   Serial.println(WiFi.localIP());
 }
 void MqttHandler::setWifiPass(String wifiPass) {
-  wifiPass = wifiPass;
+  this->wifiPass = wifiPass;
 }
 void MqttHandler::setWifiSsid(String wifiSsid) {
-  wifiSsid = wifiSsid;
+  this->wifiSsid = wifiSsid;
 }
 void setWifiSsid(String wifiSsid);
 void MqttHandler::setupMQTT(void (*callback)(char*, byte*, unsigned int)) {
   //setupWifi(ssid.c_str() , pass.c_str());
-  client.setServer(serverIP, port);
+  Serial.println("Connecting to server -> " + String(serverIP));
+  client.setServer(serverIP.c_str(), port);
+  Serial.println("Connected to Server");
   client.setCallback(callback);
   delay(1500);
 }
 
 void MqttHandler::setUuid(String uuid) {
-  uuid = uuid;
+  this->uuid = uuid;
 }
 
 //String MqttHandler::getUuid() {
 //  return uuid;
 //}
 
-bool MqttHandler::publishData(char* topic, float sensorData, float threshold, boolean stat) {
+bool MqttHandler::publishData(const char* topic, float sensorData, float threshold, boolean stat) {
 
-  char topicData[50];
+  char topicData[100];
   bool ret;
 
-  sprintf(topicData, "%s/%f/%f/%d", uuid.c_str(), sensorData, threshold, stat);
+  sprintf(topicData, "%f/%f/%d", sensorData, threshold, stat);
 
   client.unsubscribe(topic);
   ret = client.publish(topic, topicData); // AX0 AX1 AX2 AX4 AX5 AX6 AX7 AX8
@@ -97,9 +100,12 @@ boolean MqttHandler::reconnectTopics(char* topics[]) {
   if (client.connect("arduinoClient")) {
     // Once connected, publish an announcement...
     // ... and resubscribe
+    
     for (int i = 0; i < 4; i++) {
-      client.subscribe(topics[i]);
+      String topicName = String(topics[i]) + uuid;
+      client.subscribe(topicName.c_str());
     }
+    
   }
   Serial.print("Error Code :"); Serial.println(client.state());
   return client.connected();
