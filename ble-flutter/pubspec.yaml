@@ -40,6 +40,7 @@ dependencies:
   ini: ^2.1.0
   percent_indicator: ^4.2.3
   network_info_plus: ^3.0.5
+  flutter_spinkit: ^5.2.0
 
 dev_dependencies:
   flutter_test:
@@ -71,7 +72,7 @@ flutter:
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
 
-  # For details regarding adding assets from package dependencies, see  
+  # For details regarding adding assets from package dependencies, see
   # https://flutter.dev/assets-and-images/#from-packages
 
   # To add custom fonts to your application, add a fonts section here,

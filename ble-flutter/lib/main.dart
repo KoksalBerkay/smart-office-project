@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'pages/bluetooth_page.dart';
-
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'home_page.dart';
 
 void main() => runApp(const MyApp());
@@ -17,7 +17,9 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
-        home: BleHomePage(title: "AAAAAAAAAH",),
+        home: BleHomePage(
+          title: "BLE Page",
+        ),
       );
 }
 
@@ -108,16 +110,14 @@ class _BlePageState extends State<BlePage> {
 
   void nav() {
     Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => const HomePage()));
+        context, MaterialPageRoute(builder: (context) => const HomePage()));
   }
 
   _characteristicUpdater(BluetoothDevice mydevice) async {
     List<BluetoothService> services = await mydevice.discoverServices();
     for (var service in services) {
-      if(service.uuid.toString() == "c2302aa0-0548-49ff-a10a-e421fdb311ff"){
-        for (var char in service.characteristics)  {
+      if (service.uuid.toString() == "c2302aa0-0548-49ff-a10a-e421fdb311ff") {
+        for (var char in service.characteristics) {
           if (char.uuid.toString() == "4934c8ce-bce0-417c-b613-14f9f24da803") {
             await char.write(ssid.codeUnits, withoutResponse: true);
             print("Sent the wifi ssid successfully");
@@ -126,15 +126,15 @@ class _BlePageState extends State<BlePage> {
             await char.write(pass.codeUnits, withoutResponse: true);
             print("Sent the wifi pass successfully");
           }
-          if (char.uuid.toString() ==
-                  "e91a0da9-9048-4b87-99a9-01a8a62b65bf") {
+          if (char.uuid.toString() == "e91a0da9-9048-4b87-99a9-01a8a62b65bf") {
             await char.read().then((value) {
               uuid = String.fromCharCodes(value);
               nav();
               print("The uuid is: $uuid");
             });
           }
-        };
+        }
+        ;
       }
     }
   }
@@ -198,11 +198,7 @@ class _BlePageState extends State<BlePage> {
           ),
         ),
       );
-
-
 }
-
-
 
 class ScanningScreen extends StatefulWidget {
   const ScanningScreen({super.key});
@@ -223,9 +219,10 @@ class _ScanningScreenState extends State<ScanningScreen> {
         children: const [
           Align(
               alignment: Alignment.center,
-              child: Text("...",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)))
+              child: SpinKitFadingCircle(
+                color: Colors.blue,
+                size: 50.0,
+              )),
         ],
       ),
     );
