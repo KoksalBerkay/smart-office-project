@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 
+// DISCLAIMER: Unsubscribe func is not tested.
+
 // connection states for easy identification
 enum MqttCurrentConnectionState {
   IDLE,
@@ -123,7 +125,6 @@ class MQTTClientWrapper {
 
     // Set up a listener to receive incoming messages
     client.updates?.listen((List<MqttReceivedMessage<MqttMessage>> c) {
-
       final MqttPublishMessage recMess = c[0].payload as MqttPublishMessage;
 
       final message =
@@ -134,6 +135,17 @@ class MQTTClientWrapper {
     });
 
     return controller.stream;
+  }
+
+  // unsubscribe from a topic
+  void unsubscribeFromTopic(String topicName) {
+    if (client.connectionStatus?.state != MqttConnectionState.connected) {
+      print('ERROR: client is not connected');
+      return;
+    }
+
+    print('Unsubscribing from the $topicName topic');
+    client.unsubscribe(topicName);
   }
 
 //_

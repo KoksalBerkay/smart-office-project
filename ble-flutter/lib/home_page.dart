@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import 'temperature_page.dart';
+import 'pages/temperature_page.dart';
+import 'pages/humidity_page.dart';
+import 'pages/motion_page.dart';
+import 'pages/light_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -80,15 +83,22 @@ class _HomePageState extends State<HomePage> {
                           _cardMenu(
                             icon: 'assets/images/light.png',
                             title: 'LIGHT',
-                            onTap: () {},
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const LightPage(),
+                                ),
+                              );
+                            },
                           ),
-                          SizedBox(width: 32),
+                          const SizedBox(width: 32),
                           _cardMenu(
                             onTap: () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => TemperaturePage(),
+                                  builder: (context) => const TemperaturePage(),
                                 ),
                               );
                             },
@@ -108,13 +118,27 @@ class _HomePageState extends State<HomePage> {
                           _cardMenu(
                             icon: 'assets/images/motion.png',
                             title: 'MOTION',
-                            onTap: () {},
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const MotionPage(),
+                                ),
+                              );
+                            },
                           ),
-                          SizedBox(width: 32),
+                          const SizedBox(width: 32),
                           _cardMenu(
                             icon: 'assets/images/humidity.png',
                             title: 'HUMIDITY',
-                            onTap: () {},
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const HumidityPage(),
+                                ),
+                              );
+                            },
                           ),
                         ],
                       ),
