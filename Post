@@ -1,0 +1,62 @@
+#!/usr/bin/python3
+
+# code modfied from https://github.com/AlexxIT/SonoffLAN/blob/master/custom_components/sonoff/core/ewelink/local.py
+# I don't really know what I'm doing
+
+import base64
+import ipaddress
+import json
+import sys
+import requests
+
+from Crypto.Cipher import AES
+from Crypto.Hash import MD5
+from Crypto.Random import get_random_bytes
+
+def pad(data_to_pad: bytes, block_size: int):
+    padding_len = block_size - len(data_to_pad) % block_size
+    padding = bytes([padding_len]) * padding_len
+    return data_to_pad + padding
+
+
+def unpad(padded_data: bytes, block_size: int):
+    padding_len = padded_data[-1]
+    return padded_data[:-padding_len]
+
+
+def encrypt(payload: dict, devicekey: str):
+    devicekey = devicekey.encode('utf-8')
+
+    hash_ = MD5.new()
+    hash_.update(devicekey)
+    key = hash_.digest()
+
+    iv = get_random_bytes(16)
+    plaintext = json.dumps(payload['data']).encode('utf-8')
+
+    cipher = AES.new(key, AES.MODE_CBC, iv=iv)
+    padded = pad(plaintext, AES.block_size)
+    ciphertext = cipher.encrypt(padded)
+
+    payload['encrypt'] = True
+    payload['data'] = base64.b64encode(ciphertext).decode('utf-8')
+    payload['iv'] = base64.b64encode(iv).decode('utf-8')
+
+    return payload
+if sys.argv[1] == 'on' or sys.argv[1] == 'off':
+   payload = {
+       "sequence": "0",
+       "deviceid": "DEVICEID",
+       "selfApikey": "123",
+       "data": { "switch": sys.argv[1] }
+  #    "data": { "switch": "off" }
+   }
+   #print(payload)
+   payload = encrypt(payload, 'DEVICEKEY')
+   #print(payload)
+   headers={'Connection': 'close'}
+   r = requests.post(url = 'http://IPADDRESS:8081/zeroconf/switch', json=payload, headers=headers)
+   #print(r.status_code)
+   #print(r.text)
+else:
+   print('type on or off as parameter')
