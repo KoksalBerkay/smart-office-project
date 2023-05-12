@@ -114,7 +114,7 @@ class _LightPageState extends State<LightPage> {
                             // light -> gelen ışık verisi || threshold -> threshold verisi
                             'Light: %${(light / 36).toStringAsFixed(2)}',
                             style: const TextStyle(
-                              fontSize: 32,
+                              fontSize: 24,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -122,7 +122,7 @@ class _LightPageState extends State<LightPage> {
                             // light -> gelen ışık verisi || threshold -> threshold verisi
                             'Threshold: %${(thresholdValue / 36).toStringAsFixed(2)}',
                             style: const TextStyle(
-                              fontSize: 32,
+                              fontSize: 24,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -130,7 +130,7 @@ class _LightPageState extends State<LightPage> {
                             // light -> gelen ışık verisi || threshold -> threshold verisi
                             'State: $state',
                             style: const TextStyle(
-                              fontSize: 32,
+                              fontSize: 24,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
