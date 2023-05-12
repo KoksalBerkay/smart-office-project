@@ -4,6 +4,8 @@ import '../mqtt_client_wrapper.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import '../home_page.dart';
 
+String uuid = "";
+
 class MotionPage extends StatefulWidget {
   const MotionPage({Key? key}) : super(key: key);
 
@@ -161,8 +163,9 @@ class _MotionPageState extends State<MotionPage> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            IconButton(
+                            TextButton.icon(
                               icon: const Icon(Icons.remove),
+                              label: const Text("10 min"),
                               onPressed: () {
                                 setState(() {
                                   if (thresholdValue > 0) {
@@ -174,8 +177,9 @@ class _MotionPageState extends State<MotionPage> {
                               },
                             ),
                             const SizedBox(width: 24),
-                            IconButton(
+                            TextButton.icon(
                               icon: const Icon(Icons.add),
+                              label: const Text("10 min"),
                               onPressed: () {
                                 setState(() {
                                   if (thresholdValue < 7200) {
