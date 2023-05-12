@@ -171,7 +171,7 @@ class _MotionPageState extends State<MotionPage> {
                                   }
                                   mqttClientWrapper.publishMessage(
                                       'T$thresholdValue',
-                                      'motion$uuid');
+                                      'motion\\$uuid');
                                   
                                 });
                               },
@@ -186,7 +186,7 @@ class _MotionPageState extends State<MotionPage> {
                                   }
                                   mqttClientWrapper.publishMessage(
                                       'T$thresholdValue',
-                                      'motion$uuid');
+                                      'motion\\$uuid');
                                 });
                               },
                             ),
