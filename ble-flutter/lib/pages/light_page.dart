@@ -35,7 +35,7 @@ class _LightPageState extends State<LightPage> {
           List<String> messageList = message.split('/');
 
           actualValue = messageList[0];
-
+          print(actualValue![0]);
           if (actualValue![0] == "T") {
             null;
           } else {
@@ -110,6 +110,7 @@ class _LightPageState extends State<LightPage> {
                       progressColor: Colors.indigo,
                       center: Column(
                         children: [
+                          const SizedBox(height: 116),
                           Text(
                             // light -> gelen ışık verisi || threshold -> threshold verisi
                             'Light: %${(light / 36).toStringAsFixed(2)}',
