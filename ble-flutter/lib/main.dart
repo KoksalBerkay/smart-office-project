@@ -144,7 +144,7 @@ class _BlePageState extends State<BlePage> {
   Future<void> _initSSID() async {
     String? wifiName = await NetworkInfo().getWifiName();
     if (wifiName != null) {
-      _ssidController.text = wifiName;
+      _ssidController.text = wifiName.replaceAll(new RegExp('r[^\w\s]+'), "");
     }
   }
 
