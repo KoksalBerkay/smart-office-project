@@ -20,7 +20,7 @@ using namespace std;
 
 String wifiPass;
 String wifiSsid;
-String uuid;
+String espUuid;
 Preferences pref;
 
 
@@ -83,9 +83,9 @@ void startBluetooth() {
                   CHARACTERISTIC_UUID_UUID,
                   BLECharacteristic::PROPERTY_READ);
 
-  uuid = StringUUIDGen();
-  uuidCharacteristic->setValue(string(uuid.c_str())); 
-  Serial.println("UUID -> " + uuid);
+  espUuid = StringUUIDGen();
+  uuidCharacteristic->setValue(string(espUuid.c_str())); 
+  Serial.println("UUID -> " + espUuid);
   ssidCharacteristic->setCallbacks(new CharacteristicCallback());
   passCharacteristic->setCallbacks(new CharacteristicCallback());
   
@@ -110,6 +110,7 @@ void clearFlash() {
   pref.begin(ESP_FLASH_NAME, false);
   pref.clear();
   pref.end();
+  Serial.println("CLEAR FLASH");
 }
 
 
@@ -121,13 +122,13 @@ void Pair(String* ssid ,String* pass ,String* UUID ,bool reseteeprom = false ,un
   if(!reseteeprom){
     wifiSsid = pref.getString(FLASH_WIFI_SSID, "");
     wifiPass = pref.getString(FLASH_WIFI_PASS, "");
-    uuid = pref.getString(FLASH_WIFI_UUID, "");
+    espUuid = pref.getString(FLASH_WIFI_UUID, "");
   }
 
 
 // mfmfmf2020!
 
-  if (wifiSsid == 0 || wifiPass == 0 || uuid == 0) {
+  if (wifiSsid == 0 || wifiPass == 0 || espUuid == 0) {
     
     startBluetooth();
     while ((wifiSsid == 0 || wifiPass == 0) && (millis() - time) < timeOut) {                                                                                                                                                                                                                                                                                                                                                           
@@ -137,16 +138,16 @@ void Pair(String* ssid ,String* pass ,String* UUID ,bool reseteeprom = false ,un
     
     writeStringToFlash(FLASH_WIFI_SSID, wifiSsid);
     writeStringToFlash(FLASH_WIFI_PASS, wifiPass);
-    writeStringToFlash(FLASH_WIFI_UUID, uuid);
+    writeStringToFlash(FLASH_WIFI_UUID, espUuid);
 
   }
 
   delay(100);
-  BLEDevice::stopAdvertising();
+   BLEDevice::stopAdvertising();
   BLEDevice::deinit();
   pref.end();
 
   *ssid = wifiSsid;
   *pass = wifiPass;
-  *UUID = uuid;
+  *UUID = espUuid;
 }
