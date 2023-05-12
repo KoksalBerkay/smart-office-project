@@ -51,8 +51,6 @@ class _BleHomePageState extends State<BleHomePage> {
   }
 }
 
-//TODO: Automatically fill the ssid field with the ssid of the connected wifi using a library
-
 class BlePage extends StatefulWidget {
   BlePage({Key? key, required this.title}) : super(key: key);
 

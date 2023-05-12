@@ -49,8 +49,7 @@ class _TemperaturePageState extends State<TemperaturePage> {
 
             if (state == "1") {
               state = "ON";
-            }
-            else if (state == "0") {
+            } else if (state == "0") {
               state = "OFF";
             }
 
@@ -112,12 +111,31 @@ class _TemperaturePageState extends State<TemperaturePage> {
                       lineWidth: 14,
                       percent: thresholdValue / 40, //30
                       progressColor: Colors.indigo,
-                      center: Text(
-                        '${heat.toStringAsFixed(2)}\u00B0\n${thresholdValue.toStringAsFixed(2)}\u00B0\n$state',
-                        style: const TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      center: Column(
+                        children: [
+                          const SizedBox(height: 116),
+                          Text(
+                            'Heat: ${heat.toStringAsFixed(2)}\u00B0',
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            'Threshold: ${thresholdValue.toStringAsFixed(2)}\u00B0',
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            'State: $state',
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -150,8 +168,9 @@ class _TemperaturePageState extends State<TemperaturePage> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              IconButton(
+                              TextButton.icon(
                                 icon: const Icon(Icons.remove),
+                                label: const Text("0.5"),
                                 onPressed: () {
                                   setState(() {
                                     if (thresholdValue > 0) {
@@ -163,8 +182,9 @@ class _TemperaturePageState extends State<TemperaturePage> {
                                 },
                               ),
                               const SizedBox(width: 24),
-                              IconButton(
+                              TextButton.icon(
                                 icon: const Icon(Icons.add),
+                                label: const Text("0.5"),
                                 onPressed: () {
                                   setState(() {
                                     if (thresholdValue < 40) {
@@ -178,7 +198,6 @@ class _TemperaturePageState extends State<TemperaturePage> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 16),
                         ],
                       ),
                     ),

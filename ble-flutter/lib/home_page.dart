@@ -4,9 +4,7 @@ import 'pages/humidity_page.dart';
 import 'pages/motion_page.dart';
 import 'pages/light_page.dart';
 
-
 String mqttIp = "192.168.0.108";
-
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -16,7 +14,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

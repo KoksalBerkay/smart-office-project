@@ -131,7 +131,7 @@ class _MotionPageState extends State<MotionPage> {
                       ],
                     ),
                   ),
-                  SizedBox(height: 24),
+                  const SizedBox(height: 24),
                   const Center(
                     child: Text(
                       'MOTION',
@@ -139,6 +139,7 @@ class _MotionPageState extends State<MotionPage> {
                           fontWeight: FontWeight.bold, color: Colors.black54),
                     ),
                   ),
+                  const SizedBox(height: 32),
                   Container(
                     padding: const EdgeInsets.symmetric(vertical: 18),
                     decoration: BoxDecoration(

@@ -31,7 +31,6 @@ class _LightPageState extends State<LightPage> {
         setState(() {
           print("Message: " + message);
 
-          // Add the logic to parse the mqtt messages here
           List<String> messageList = message.split('/');
 
           actualValue = messageList[0];
@@ -173,14 +172,16 @@ class _LightPageState extends State<LightPage> {
                                 label: _sliderValue.round().toString(),
                                 max: 100,
                                 divisions: 100,
-                                onChanged: (double value) {
+                                onChanged: (value) => setState(() {
+                                  _sliderValue = value;
+                                }),
+                                onChangeEnd: (double value) {
                                   setState(() {
                                     _sliderValue = value;
                                     thresholdValue =
                                         (_sliderValue * 36).toInt();
                                     mqttClientWrapper.publishMessage(
-                                        'T$thresholdValue',
-                                        'light\\$uuid');
+                                        'T$thresholdValue', 'light\\$uuid');
                                   });
                                 },
                               )
