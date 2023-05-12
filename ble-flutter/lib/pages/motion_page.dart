@@ -18,7 +18,6 @@ class _MotionPageState extends State<MotionPage> {
   String? state = "";
   MQTTClientWrapper mqttClientWrapper = MQTTClientWrapper();
 
-
   @override
   void initState() {
     super.initState();
@@ -34,24 +33,21 @@ class _MotionPageState extends State<MotionPage> {
           actualValue = messageList[0];
           if (actualValue![0] == 'T') {
             null;
-          }
-          else {
+          } else {
             motion = double.parse(actualValue!);
             thresholdValue = double.parse(messageList[1]);
             state = messageList[2];
-            if (state == '1'){
+            if (state == '1') {
               state = 'ON';
             }
             if (state == '0') {
               state = 'OFF';
             }
 
-
             print("Motion: " + motion.toString());
             print('Threshold Value: $thresholdValue');
             print('State: $state');
           }
-
         });
       });
     });
@@ -99,26 +95,27 @@ class _MotionPageState extends State<MotionPage> {
               Expanded(
                   child: ListView(
                 physics: const BouncingScrollPhysics(),
-                children:[
+                children: [
                   const SizedBox(height: 32),
                   CircularPercentIndicator(
                     animateFromLastPercent: true,
                     radius: 180,
                     lineWidth: 14,
-                    percent: thresholdValue/180,
+                    percent: thresholdValue / 1800, //thresholdValue/180,
                     progressColor: Colors.indigo,
-                    
-                    center:Column(children: [
+
+                    center: Column(
+                      children: [
                         SizedBox(height: 132),
                         Text(
-                          'Motionless Time: ${motion.toStringAsFixed(0)}',
+                          'Motionless Time: ${(motion / 60).toStringAsFixed(0)} min.',
                           style: const TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         Text(
-                          'Threshold: ${thresholdValue.toInt().toString()}',
+                          'Threshold: ${(thresholdValue.toInt() / 60).toStringAsFixed(0)} min.',
                           style: const TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
@@ -131,7 +128,8 @@ class _MotionPageState extends State<MotionPage> {
                             fontWeight: FontWeight.bold,
                           ),
                         )
-                      ],) ,
+                      ],
+                    ),
                   ),
                   SizedBox(height: 24),
                   const Center(
@@ -170,9 +168,7 @@ class _MotionPageState extends State<MotionPage> {
                                     thresholdValue -= 10.0;
                                   }
                                   mqttClientWrapper.publishMessage(
-                                      'T$thresholdValue',
-                                      'motion\\$uuid');
-                                  
+                                      'T$thresholdValue', 'motion\\$uuid');
                                 });
                               },
                             ),
@@ -181,12 +177,12 @@ class _MotionPageState extends State<MotionPage> {
                               icon: const Icon(Icons.add),
                               onPressed: () {
                                 setState(() {
-                                  if (thresholdValue < 180) {
-                                    thresholdValue += 10;
+                                  if (thresholdValue < 7200) {
+                                    //180
+                                    thresholdValue += 10.0;
                                   }
                                   mqttClientWrapper.publishMessage(
-                                      'T$thresholdValue',
-                                      'motion\\$uuid');
+                                      'T$thresholdValue', 'motion\\$uuid');
                                 });
                               },
                             ),
