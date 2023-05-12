@@ -16,6 +16,7 @@ class MqttHandler {
     
     //static void callback(char* topic, byte* payload, unsigned int length);
   public:
+    String getUuid();
     void setUuid(String uuid);
     void setServerIP(String ipAddress);
     void setPort(uint16_t port);
@@ -111,3 +112,6 @@ boolean MqttHandler::reconnectTopics(char* topics[]) {
   return client.connected();
 }
 
+String MqttHandler::getUuid(){
+  return this->uuid;
+}
