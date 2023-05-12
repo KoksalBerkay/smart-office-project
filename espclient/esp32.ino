@@ -1,56 +1,58 @@
 #include <DHT.h>
 #include "wificonnection.h"
 #include "pair.h"
-#define PIR_SENSOR 4
+#define PIR_SENSOR 15
 #define DHT_PIN 5
-#define LDR_PIN 15
+#define LDR_PIN 34
 #define RELAY_PIN 18
 #define LIGHT_PIN 19
+#define SERVER_IP "192.168.1.97"
+#define SERVER_PORT 1883
+#define ESPBUTTON 0
 
-MqttHandler handler;
 
-
-char* topics[] = {"temp", "light", "motion", "humidity"};
 
 DHT dht(DHT_PIN, DHT11);
 
+
+MqttHandler handler;
+String uuid;
 int pirData;
-int motionlessTimeThreshold = 600000;
-float tempData;
-float tempThreshold = 26;
 int lightData;
 int lightThreshold = 500;
+unsigned int lastReconnectAttempt = 0;
+unsigned int lastMotionTime = 0;
+unsigned int motionlessTimeThreshold = 60;
+float tempData;
+float tempThreshold = 26;
+char* topics[] = {"temp", "light", "motion", "humidity"};
 
-
-int lastReconnectAttempt = 0;
-int lastMotionTime = 0;
 void callback(char* topic, byte* payload, unsigned int length) {
   Serial.println("Data from MQTT recieved.");
   char* d = (char*)malloc(length + 1);
   d = (char*)payload; d[length] = 0;
   String data(d);
 
-  String valueStr = data.substring(0 , data.indexOf('/'));
-  String thresStr = data.substring(data.indexOf('/') + 1 , data.indexOf('/', data.indexOf('/') + 1));
-  String statStr = data.substring(data.lastIndexOf('/') + 1);
 
-  Serial.print("Topic : ");
-  Serial.print(topic);
-  Serial.print(" , Thres : ");
-  Serial.print(thresStr.toInt());
-  Serial.print(" , Recived Data : ");
+  if (data.charAt(0) == 'T') {
+    String thresStr = data.substring(1);
+    if (!strcmp(topic , String(String("temp\\") + uuid).c_str())) {
+      tempThreshold = thresStr.toFloat();
+      Serial.println("Temp threshold updated. Updated value = " + String(tempThreshold));
+    }
+    else if (!strcmp(topic , String(String("light\\") + uuid).c_str())) {
+      lightThreshold = thresStr.toInt();
+      Serial.println("Light threshold updated. Updated value = " + String(lightThreshold));
+    }
+    else if (!strcmp(topic , String(String("motion\\") + uuid).c_str())) {
+      motionlessTimeThreshold = thresStr.toInt();
+      Serial.println("Motion threshold updated. Updated value = " + String(lightThreshold));
+    }
+  }
+
+  Serial.print("Recived Data : ");
   Serial.println(data);
 
-  if (!strcmp(topic , "temp")) {
-    tempThreshold = thresStr.toFloat();
-
-  }
-  else if (!strcmp(topic , "light")) {
-    lightThreshold = thresStr.toInt();
-  }
-  else if (!strcmp(topic , "motion")) {
-    motionlessTimeThreshold = thresStr.toInt();
-  }
 }
 
 
@@ -64,10 +66,10 @@ void setup() {
 
   String ssid;
   String pass;
-  String uuid;
+
 
   Serial.println("Pairing");
-  Pair(&ssid , &pass , &uuid, 1);
+  Pair(&ssid , &pass , &uuid, 0);
 
   Serial.println("Pairing done");
   Serial.println("SSID : " + ssid);
@@ -76,12 +78,21 @@ void setup() {
   dht.begin();
   Serial.println("setup done");
   handler.setUuid(uuid);
-  handler.setServerIP("192.168.43.254");
-  handler.setPort(1883);
+  handler.setServerIP(SERVER_IP);
+  handler.setPort(SERVER_PORT);
   handler.setWifiPass(pass);
   handler.setWifiSsid(ssid);
   handler.setupWifi();
   handler.setupMQTT(callback);
+  xTaskCreatePinnedToCore(
+    client.loop,   /* Task function. */
+    "callback",     /* name of task. */
+    10000,       /* Stack size of task */
+    NULL,        /* parameter of the task */
+    1,           /* priority of the task */
+    NULL,      /* Task handle to keep track of created task */
+    0);          /* pin task to core 0 */
+  delay(500);
 }
 
 
@@ -123,16 +134,17 @@ void loop() {
     }
   } else {
     // Client connected
-    String topicName = "temp" + uuid;
-    Serial.println("Connecting topic name -> " + topicName);
-    handler.publishData(topicName.c_str(), tempData, tempThreshold, true);
+
+    handler.publishData(("temp\\" + uuid).c_str(), tempData, tempThreshold, digitalRead(RELAY_PIN));
     Serial.println(tempThreshold);
     //publishData("temp", 22, 25, true);
-    //publishData("motion" ,motionlessTime ,motionlessTimeThreshold ,true);
-    //publishData("light" ,lightData ,lightThreshold, true);
+    handler.publishData(("motion\\" + uuid).c_str() , motionlessTime / 1000 , motionlessTimeThreshold , pirData);
+    handler.publishData(("light\\" + uuid).c_str() , lightData , lightThreshold, true);
 
     delay(1000);
-
+    if (digitalRead(ESPBUTTON) == 0) {
+      clearFlash();
+    }
 
     client.loop();
   }
