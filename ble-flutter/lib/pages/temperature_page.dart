@@ -32,7 +32,7 @@ class _TemperaturePageState extends State<TemperaturePage> {
     // wait for the client to connect
     Future.delayed(const Duration(seconds: 1)).then((_) {
       print("subscribing...");
-      mqttClientWrapper.subscribeToTopic("temp$uuid")?.listen((message) {
+      mqttClientWrapper.subscribeToTopic("temp\\$uuid")?.listen((message) {
         setState(() {
           print("Message: " + message);
 
@@ -158,7 +158,7 @@ class _TemperaturePageState extends State<TemperaturePage> {
                                       thresholdValue -= 0.5;
                                     }
                                     mqttClientWrapper.publishMessage(
-                                        'T$thresholdValue', 'temp$uuid');
+                                        'T$thresholdValue', 'temp\\$uuid');
                                   });
                                 },
                               ),
@@ -172,7 +172,7 @@ class _TemperaturePageState extends State<TemperaturePage> {
                                       thresholdValue += 0.5;
                                     }
                                     mqttClientWrapper.publishMessage(
-                                        'T$thresholdValue', 'temp$uuid');
+                                        'T$thresholdValue', 'temp\\$uuid');
                                   });
                                 },
                               ),
