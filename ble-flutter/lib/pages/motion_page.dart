@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../main.dart';
 import '../mqtt_client_wrapper.dart';
+import 'package:percent_indicator/circular_percent_indicator.dart';
+import '../home_page.dart';
 
 class MotionPage extends StatefulWidget {
   const MotionPage({Key? key}) : super(key: key);
@@ -10,21 +12,46 @@ class MotionPage extends StatefulWidget {
 }
 
 class _MotionPageState extends State<MotionPage> {
+  double motion = 0.0;
+  String? actualValue = "";
+  double thresholdValue = 0.0;
+  String? state = "";
   MQTTClientWrapper mqttClientWrapper = MQTTClientWrapper();
+
 
   @override
   void initState() {
     super.initState();
-    mqttClientWrapper.prepareMqttClient("", "", "192.168.0.108", 1883);
+    mqttClientWrapper.prepareMqttClient("", "", mqttIp, 1883);
 
     // wait for the client to connect
     Future.delayed(const Duration(seconds: 1)).then((_) {
       print("subscribing...");
-      mqttClientWrapper.subscribeToTopic("motion$uuid")?.listen((message) {
+      mqttClientWrapper.subscribeToTopic("motion\\$uuid")?.listen((message) {
         setState(() {
           print("Message: " + message);
+          List<String> messageList = message.split('/');
+          actualValue = messageList[0];
+          if (actualValue![0] == 'T') {
+            null;
+          }
+          else {
+            motion = double.parse(actualValue!);
+            thresholdValue = double.parse(messageList[1]);
+            state = messageList[2];
+            if (state == '1'){
+              state = 'ON';
+            }
+            if (state == '0') {
+              state = 'OFF';
+            }
 
-          // Add the logic to parse the mqtt messages here
+
+            print("Motion: " + motion.toString());
+            print('Threshold Value: $thresholdValue');
+            print('State: $state');
+          }
+
         });
       });
     });
@@ -72,26 +99,104 @@ class _MotionPageState extends State<MotionPage> {
               Expanded(
                   child: ListView(
                 physics: const BouncingScrollPhysics(),
-                children: const [
-                  SizedBox(height: 32),
-                  Center(
-                    child: Text(
-                      "data",
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                children:[
+                  const SizedBox(height: 32),
+                  CircularPercentIndicator(
+                    animateFromLastPercent: true,
+                    radius: 180,
+                    lineWidth: 14,
+                    percent: thresholdValue/180,
+                    progressColor: Colors.indigo,
+                    
+                    center:Column(children: [
+                        SizedBox(height: 132),
+                        Text(
+                          'Motionless Time: ${motion.toStringAsFixed(0)}',
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          'Threshold: ${thresholdValue.toInt().toString()}',
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          'Motion: $state',
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        )
+                      ],) ,
                   ),
                   SizedBox(height: 24),
-                  Center(
+                  const Center(
                     child: Text(
                       'MOTION',
                       style: TextStyle(
                           fontWeight: FontWeight.bold, color: Colors.black54),
                     ),
                   ),
-                  SizedBox(height: 32),
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 24),
+                          child: Text(
+                            'TIME SETTING',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.remove),
+                              onPressed: () {
+                                setState(() {
+                                  if (thresholdValue > 0) {
+                                    thresholdValue -= 10.0;
+                                  }
+                                  mqttClientWrapper.publishMessage(
+                                      'T$thresholdValue',
+                                      'motion$uuid');
+                                  
+                                });
+                              },
+                            ),
+                            const SizedBox(width: 24),
+                            IconButton(
+                              icon: const Icon(Icons.add),
+                              onPressed: () {
+                                setState(() {
+                                  if (thresholdValue < 180) {
+                                    thresholdValue += 10;
+                                  }
+                                  mqttClientWrapper.publishMessage(
+                                      'T$thresholdValue',
+                                      'motion$uuid');
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
                 ],
               )),
             ],
