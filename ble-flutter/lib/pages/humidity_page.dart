@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../home_page.dart';
 import '../main.dart';
 import '../mqtt_client_wrapper.dart';
 
@@ -15,12 +16,12 @@ class _HumidityPageState extends State<HumidityPage> {
   @override
   void initState() {
     super.initState();
-    mqttClientWrapper.prepareMqttClient("", "", "192.168.0.108", 1883);
+    mqttClientWrapper.prepareMqttClient("", "", mqttIp, 1883);
 
     // wait for the client to connect
     Future.delayed(const Duration(seconds: 1)).then((_) {
       print("subscribing...");
-      mqttClientWrapper.subscribeToTopic("humidity$uuid")?.listen((message) {
+      mqttClientWrapper.subscribeToTopic("humidity\\$uuid")?.listen((message) {
         setState(() {
           print("Message: " + message);
 
