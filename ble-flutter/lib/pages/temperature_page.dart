@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
+import '../home_page.dart';
 import '../main.dart';
 import '../mqtt_client_wrapper.dart';
 
@@ -26,7 +27,7 @@ class _TemperaturePageState extends State<TemperaturePage> {
   @override
   void initState() {
     super.initState();
-    mqttClientWrapper.prepareMqttClient("", "", "192.168.0.108", 1883);
+    mqttClientWrapper.prepareMqttClient("", "", mqttIp, 1883);
 
     // wait for the client to connect
     Future.delayed(const Duration(seconds: 1)).then((_) {
@@ -39,13 +40,24 @@ class _TemperaturePageState extends State<TemperaturePage> {
 
           actualValue = messageList[0];
 
-          heat = double.parse(actualValue!);
-          thresholdValue = double.parse(messageList[1]);
-          state = messageList[2];
+          if (actualValue![0] == "T") {
+            null;
+          } else {
+            heat = double.parse(actualValue!);
+            thresholdValue = double.parse(messageList[1]);
+            state = messageList[2];
 
-          print("Heat: " + heat.toString());
-          print('Threshold Value: $thresholdValue');
-          print('State: $state');
+            if (state == "1") {
+              state = "ON";
+            }
+            else if (state == "0") {
+              state = "OFF";
+            }
+
+            print("Heat: $heat");
+            print('Threshold Value: $thresholdValue');
+            print('State: $state');
+          }
         });
       });
     });
@@ -98,7 +110,7 @@ class _TemperaturePageState extends State<TemperaturePage> {
                     CircularPercentIndicator(
                       radius: 180,
                       lineWidth: 14,
-                      percent: thresholdValue / 30,
+                      percent: thresholdValue / 40, //30
                       progressColor: Colors.indigo,
                       center: Text(
                         '${heat.toStringAsFixed(2)}\u00B0\n${thresholdValue.toStringAsFixed(2)}\u00B0\n$state',
@@ -146,8 +158,7 @@ class _TemperaturePageState extends State<TemperaturePage> {
                                       thresholdValue -= 0.5;
                                     }
                                     mqttClientWrapper.publishMessage(
-                                        '$heat/$thresholdValue/$state',
-                                        'temp$uuid');
+                                        'T$thresholdValue', 'temp$uuid');
                                   });
                                 },
                               ),
@@ -156,12 +167,12 @@ class _TemperaturePageState extends State<TemperaturePage> {
                                 icon: const Icon(Icons.add),
                                 onPressed: () {
                                   setState(() {
-                                    if (thresholdValue < 30) {
+                                    if (thresholdValue < 40) {
+                                      //30
                                       thresholdValue += 0.5;
                                     }
                                     mqttClientWrapper.publishMessage(
-                                        '$heat/$thresholdValue/$state',
-                                        'temp$uuid');
+                                        'T$thresholdValue', 'temp$uuid');
                                   });
                                 },
                               ),
