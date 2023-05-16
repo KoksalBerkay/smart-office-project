@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:percent_indicator/circular_percent_indicator.dart';
 import '../home_page.dart';
 import '../main.dart';
 import '../mqtt_client_wrapper.dart';
+
 
 class HumidityPage extends StatefulWidget {
   const HumidityPage({Key? key}) : super(key: key);
@@ -11,6 +13,8 @@ class HumidityPage extends StatefulWidget {
 }
 
 class _HumidityPageState extends State<HumidityPage> {
+  double humidity= 0.0;
+  String? actualValue = "";
   MQTTClientWrapper mqttClientWrapper = MQTTClientWrapper();
 
   @override
@@ -25,7 +29,18 @@ class _HumidityPageState extends State<HumidityPage> {
         setState(() {
           print("Message: " + message);
 
-          // Add the logic to parse the mqtt messages here
+          List<String> messageList = message.split('/');
+
+          actualValue = messageList[0];
+
+          if (actualValue![0] == "T") {
+            null;
+          } else {
+            humidity = double.parse(actualValue!);
+
+
+            print("Humidity: $humidity");
+          }
         });
       });
     });
@@ -71,30 +86,40 @@ class _HumidityPageState extends State<HumidityPage> {
                 ],
               ),
               Expanded(
-                  child: ListView(
-                physics: const BouncingScrollPhysics(),
-                children: const [
-                  SizedBox(height: 32),
-                  Center(
-                    child: Text(
-                      "data",
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
+                child: ListView(
+                  physics: const BouncingScrollPhysics(),
+                  children: [
+                    const SizedBox(height: 64),
+                    CircularPercentIndicator(
+                      radius: 180,
+                      lineWidth: 14,
+                      percent: humidity / 100,
+                      progressColor: Colors.indigo,
+                      center: Column(
+                        children: [
+                          const SizedBox(height: 164),
+                          Text(
+                            'Humidity: ${humidity.toStringAsFixed(2)} gr/m³',
+                            style: const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                  SizedBox(height: 24),
-                  Center(
-                    child: Text(
-                      'HUMIDITY',
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold, color: Colors.black54),
+                    const SizedBox(height: 24),
+                    const Center(
+                      child: Text(
+                        'Humidity',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, color: Colors.black54),
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 32),
-                ],
-              )),
+                    const SizedBox(height: 32),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
