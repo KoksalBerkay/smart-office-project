@@ -2,8 +2,9 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
 
+
 WiFiClient wifiClient;
-PubSubClient client(wifiClient);
+    PubSubClient client(wifiClient);
 
 
 class MqttHandler {
@@ -14,9 +15,10 @@ class MqttHandler {
     String wifiPass;
     String wifiSsid;
     
+    
     //static void callback(char* topic, byte* payload, unsigned int length);
   public:
-    String getUuid();
+    PubSubClient getMqttHandler();
     void setUuid(String uuid);
     void setServerIP(String ipAddress);
     void setPort(uint16_t port);
@@ -31,6 +33,10 @@ class MqttHandler {
 
 
 };
+
+PubSubClient getMqttHandler(){
+  return client;
+}
 
 void MqttHandler::setServerIP(String ipAddress) {
   this->serverIP = ipAddress;
@@ -66,12 +72,13 @@ void MqttHandler::setWifiSsid(String wifiSsid) {
   this->wifiSsid = wifiSsid;
 }
 void setWifiSsid(String wifiSsid);
-void MqttHandler::setupMQTT(void (*callback)(char*, byte*, unsigned int)) {
+
+void MqttHandler::setupMQTT(void (*callbackfunc)(char*, byte*, unsigned int)) {
   //setupWifi(ssid.c_str() , pass.c_str());
   Serial.println("Connecting to server -> " + String(serverIP));
   client.setServer(serverIP.c_str(), port);
   Serial.println("Connected to Server");
-  client.setCallback(callback);
+  client.setCallback(callbackfunc);
   delay(1500);
 }
 
@@ -90,9 +97,9 @@ bool MqttHandler::publishData(const char* topic, float sensorData, float thresho
 
   sprintf(topicData, "%f/%f/%d", sensorData, threshold, stat);
 
-  client.unsubscribe(topic);
+  //client.unsubscribe(topic);
   ret = client.publish(topic, topicData); // AX0 AX1 AX2 AX4 AX5 AX6 AX7 AX8
-  client.subscribe(topic);
+  //client.subscribe(topic);
   return ret;
 }
 
@@ -103,15 +110,12 @@ boolean MqttHandler::reconnectTopics(char* topics[]) {
     // ... and resubscribe
     
     for (int i = 0; i < 4; i++) {
-      String topicName = String(topics[i]) + uuid;
+      String topicName = String(topics[i])+ "\\" + uuid;
       client.subscribe(topicName.c_str());
+      Serial.println("Subscribed to : " + topicName);
     }
     
   }
   Serial.print("Error Code :"); Serial.println(client.state());
   return client.connected();
-}
-
-String MqttHandler::getUuid(){
-  return this->uuid;
 }
