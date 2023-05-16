@@ -79,7 +79,7 @@ void setup() {
 
 
   Serial.println("Pairing");
-  Pair(&ssid , &pass , &uuid, 1);
+  Pair(&ssid , &pass , &uuid, 0);
 
   Serial.println("Pairing done");
   Serial.println("SSID : " + ssid);
@@ -131,10 +131,12 @@ void loop() {
 
   lastMotionTime = pirData ? millis() : lastMotionTime;
   int motionlessTime = millis() - lastMotionTime;
-
+  Serial.print("motionless time : ");
+  Serial.println(motionlessTime);
+  
   digitalWrite(RELAY_PIN , tempData < tempThreshold ? 1 : 0);
 
-  digitalWrite(LIGHT_PIN , (lightData < lightThreshold) && (motionlessTime < motionlessTimeThreshold) ? 1 : 0);
+  digitalWrite(LIGHT_PIN , (lightData < lightThreshold) ? 1 : 0);
 
 
 
@@ -154,7 +156,7 @@ void loop() {
     Serial.println(tempThreshold);
     //publishData("temp", 22, 25, true);
     handler.publishData(("motion\\" + uuid).c_str() , motionlessTime / 1000 , motionlessTimeThreshold , pirData);
-    handler.publishData(("light\\" + uuid).c_str() , lightData , lightThreshold, true);
+    handler.publishData(("light\\" + uuid).c_str() , lightData , lightThreshold, (lightData < lightThreshold));
     handler.publishData(("humidity\\" + uuid).c_str() , humidityData , 0, 0);
 
     delay(1000);
