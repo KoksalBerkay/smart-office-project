@@ -118,17 +118,22 @@ class _BlePageState extends State<BlePage> {
       if (service.uuid.toString() == "c2302aa0-0548-49ff-a10a-e421fdb311ff") {
         for (var char in service.characteristics) {
           if (char.uuid.toString() == "4934c8ce-bce0-417c-b613-14f9f24da803") {
-            await char.write(ssid.codeUnits, withoutResponse: true);
+            char.write(ssid.codeUnits, withoutResponse: true);
             print("Sent the wifi ssid successfully");
           }
           if (char.uuid.toString() == "7dec32af-0afe-4718-9c5b-a0c120bab609") {
-            await char.write(pass.codeUnits, withoutResponse: true);
+            char.write(pass.codeUnits, withoutResponse: true);
             print("Sent the wifi pass successfully");
           }
           if (char.uuid.toString() == "e91a0da9-9048-4b87-99a9-01a8a62b65bf") {
             await char.read().then((value) {
               uuid = String.fromCharCodes(value);
-              nav();
+              if (uuid == "") {
+                throw Exception("UUID is empty so go get it again!!!");
+              }
+              else {
+                nav();
+              }
               print("The uuid is: $uuid");
             });
           }
@@ -225,12 +230,15 @@ class _ScanningScreenState extends State<ScanningScreen> {
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: const [
+          SizedBox(height: 100),
           Align(
               alignment: Alignment.center,
               child: SpinKitFadingCircle(
                 color: Colors.blue,
                 size: 50.0,
               )),
+          SizedBox(height: 150),
+          Text("This should not take more than one minute.", style: TextStyle(fontSize: 12,),),
         ],
       ),
     );
