@@ -4,8 +4,6 @@ import '../mqtt_client_wrapper.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import '../home_page.dart';
 
-String uuid = "";
-
 class MotionPage extends StatefulWidget {
   const MotionPage({Key? key}) : super(key: key);
 
