@@ -22,9 +22,12 @@ int lightData;
 int lightThreshold = 500;
 unsigned int lastReconnectAttempt = 0;
 unsigned int lastMotionTime = 0;
-unsigned int motionlessTimeThreshold = 60;
+unsigned int motionlessTimeThreshold = 0;
 float tempData;
 float tempThreshold = 26;
+float humidityData;
+
+
 char* topics[] = {"temp", "light", "motion", "humidity"};
 
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -32,7 +35,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   char* d = (char*)malloc(length + 1);
   d = (char*)payload; d[length] = 0;
   String data(d);
-
+  Serial.println(data);
 
   if (data.charAt(0) == 'T') {
     String thresStr = data.substring(1);
@@ -55,12 +58,19 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
 }
 
+void loop2( void * parameter){
+  while(1){
+    client.loop();
+    delay(10);
+    }
+}
 
 void setup() {
   pinMode(PIR_SENSOR, INPUT);
   pinMode(LDR_PIN, INPUT);
   pinMode(DHT_PIN, INPUT);
   pinMode(RELAY_PIN, OUTPUT);
+  pinMode(LIGHT_PIN, OUTPUT);
   Serial.begin(115200);
 
 
@@ -69,7 +79,7 @@ void setup() {
 
 
   Serial.println("Pairing");
-  Pair(&ssid , &pass , &uuid, 0);
+  Pair(&ssid , &pass , &uuid, 1);
 
   Serial.println("Pairing done");
   Serial.println("SSID : " + ssid);
@@ -84,14 +94,16 @@ void setup() {
   handler.setWifiSsid(ssid);
   handler.setupWifi();
   handler.setupMQTT(callback);
+  client.setCallback(callback);
+  TaskHandle_t Task1;
   xTaskCreatePinnedToCore(
-    client.loop,   /* Task function. */
-    "callback",     /* name of task. */
-    10000,       /* Stack size of task */
-    NULL,        /* parameter of the task */
-    1,           /* priority of the task */
-    NULL,      /* Task handle to keep track of created task */
-    0);          /* pin task to core 0 */
+      loop2, /* Function to implement the task */
+      "Task1", /* Name of the task */
+      10000,  /* Stack size in words */
+      NULL,  /* Task input parameter */
+      0,  /* Priority of the task */
+      &Task1,  /* Task handle. */
+      1); /* Core where the task should run */
   delay(500);
 }
 
@@ -103,13 +115,16 @@ void loop() {
   pirData = digitalRead(PIR_SENSOR);
   lightData = analogRead(LDR_PIN);
   tempData = dht.readTemperature();
+  humidityData = dht.readHumidity();
 
   Serial.print("PIR Sensor : ");
   Serial.println(pirData);
   Serial.print("LDR : ");
   Serial.println(lightData);
-  Serial.print("DHT : ");
+  Serial.print("Temp : ");
   Serial.println(tempData);
+  Serial.print("Hmdy : ");
+  Serial.println(humidityData);
   //digitalWrite(RELAY_PIN, pirData);
 
 
@@ -140,13 +155,14 @@ void loop() {
     //publishData("temp", 22, 25, true);
     handler.publishData(("motion\\" + uuid).c_str() , motionlessTime / 1000 , motionlessTimeThreshold , pirData);
     handler.publishData(("light\\" + uuid).c_str() , lightData , lightThreshold, true);
+    handler.publishData(("humidity\\" + uuid).c_str() , humidityData , 0, 0);
 
     delay(1000);
     if (digitalRead(ESPBUTTON) == 0) {
       clearFlash();
     }
 
-    client.loop();
+    
   }
 
 
