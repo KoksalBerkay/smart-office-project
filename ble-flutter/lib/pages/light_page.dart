@@ -12,9 +12,9 @@ class LightPage extends StatefulWidget {
 }
 
 class _LightPageState extends State<LightPage> {
-  int light = 0; //0
+  double light = 0.0; //0
   String? actualValue = "";
-  int thresholdValue = 0; //0
+  double thresholdValue = 0; //0
   double _sliderValue = 0;
   String? state = "";
   MQTTClientWrapper mqttClientWrapper = MQTTClientWrapper();
@@ -38,8 +38,8 @@ class _LightPageState extends State<LightPage> {
           if (actualValue![0] == "T") {
             null;
           } else {
-            light = int.parse(actualValue!);
-            thresholdValue = int.parse(messageList[1]);
+            light = double.parse(actualValue!).roundToDouble();
+            thresholdValue = double.parse(messageList[1]).roundToDouble();
             state = messageList[2];
             _sliderValue = thresholdValue / 36;
             if (state == "1") {
@@ -179,7 +179,7 @@ class _LightPageState extends State<LightPage> {
                                   setState(() {
                                     _sliderValue = value;
                                     thresholdValue =
-                                        (_sliderValue * 36).toInt();
+                                        (_sliderValue * 36).toDouble();
                                     mqttClientWrapper.publishMessage(
                                         'T$thresholdValue', 'light\\$uuid');
                                   });
