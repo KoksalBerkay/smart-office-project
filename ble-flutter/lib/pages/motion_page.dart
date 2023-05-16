@@ -44,7 +44,7 @@ class _MotionPageState extends State<MotionPage> {
               state = 'OFF';
             }
 
-            print("Motion: " + motion.toString());
+            print("Motionless time: " + motion.toString());
             print('Threshold Value: $thresholdValue');
             print('State: $state');
           }
@@ -108,7 +108,7 @@ class _MotionPageState extends State<MotionPage> {
                       children: [
                         SizedBox(height: 132),
                         Text(
-                          'Motionless Time: ${(motion / 60).toStringAsFixed(0)} min.',
+                          'Motionless Time: ${(motion / 60).toStringAsFixed(1)} min.',
                           style: const TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
@@ -167,7 +167,7 @@ class _MotionPageState extends State<MotionPage> {
                               onPressed: () {
                                 setState(() {
                                   if (thresholdValue > 0) {
-                                    thresholdValue -= 10.0;
+                                    thresholdValue -= 60.0;
                                   }
                                   mqttClientWrapper.publishMessage(
                                       'T$thresholdValue', 'motion\\$uuid');
@@ -182,7 +182,7 @@ class _MotionPageState extends State<MotionPage> {
                                 setState(() {
                                   if (thresholdValue < 7200) {
                                     //180
-                                    thresholdValue += 10.0;
+                                    thresholdValue += 60.0;
                                   }
                                   mqttClientWrapper.publishMessage(
                                       'T$thresholdValue', 'motion\\$uuid');
