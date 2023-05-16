@@ -4,7 +4,7 @@ import 'pages/humidity_page.dart';
 import 'pages/motion_page.dart';
 import 'pages/light_page.dart';
 
-String mqttIp = "192.168.0.108";
+String mqttIp = "192.168.1.97";
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -60,7 +60,7 @@ class _HomePageState extends State<HomePage> {
                     const SizedBox(height: 16),
                     const Center(
                       child: Text(
-                        'Smart Home',
+                        'Smart Office',
                         style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
