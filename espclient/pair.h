@@ -20,7 +20,7 @@ using namespace std;
 
 String wifiPass;
 String wifiSsid;
-String espUuid;
+String _uuid;
 Preferences pref;
 
 
@@ -83,9 +83,9 @@ void startBluetooth() {
                   CHARACTERISTIC_UUID_UUID,
                   BLECharacteristic::PROPERTY_READ);
 
-  espUuid = StringUUIDGen();
-  uuidCharacteristic->setValue(string(espUuid.c_str())); 
-  Serial.println("UUID -> " + espUuid);
+  _uuid = StringUUIDGen();
+  uuidCharacteristic->setValue(string(_uuid.c_str())); 
+  Serial.println("UUID -> " + _uuid);
   ssidCharacteristic->setCallbacks(new CharacteristicCallback());
   passCharacteristic->setCallbacks(new CharacteristicCallback());
   
@@ -101,7 +101,7 @@ void startBluetooth() {
   pAdvertising->setMinPreferred(0x12);
   pService->start();
   BLEDevice::startAdvertising();
-  delay(2000);
+  delay(1000);
 }
 
 
@@ -110,7 +110,6 @@ void clearFlash() {
   pref.begin(ESP_FLASH_NAME, false);
   pref.clear();
   pref.end();
-  Serial.println("CLEAR FLASH");
 }
 
 
@@ -122,13 +121,13 @@ void Pair(String* ssid ,String* pass ,String* UUID ,bool reseteeprom = false ,un
   if(!reseteeprom){
     wifiSsid = pref.getString(FLASH_WIFI_SSID, "");
     wifiPass = pref.getString(FLASH_WIFI_PASS, "");
-    espUuid = pref.getString(FLASH_WIFI_UUID, "");
+    _uuid = pref.getString(FLASH_WIFI_UUID, "");
   }
 
 
 // mfmfmf2020!
 
-  if (wifiSsid == 0 || wifiPass == 0 || espUuid == 0) {
+  if (wifiSsid == 0 || wifiPass == 0 || _uuid == 0) {
     
     startBluetooth();
     while ((wifiSsid == 0 || wifiPass == 0) && (millis() - time) < timeOut) {                                                                                                                                                                                                                                                                                                                                                           
@@ -138,16 +137,16 @@ void Pair(String* ssid ,String* pass ,String* UUID ,bool reseteeprom = false ,un
     
     writeStringToFlash(FLASH_WIFI_SSID, wifiSsid);
     writeStringToFlash(FLASH_WIFI_PASS, wifiPass);
-    writeStringToFlash(FLASH_WIFI_UUID, espUuid);
+    writeStringToFlash(FLASH_WIFI_UUID, _uuid);
 
   }
 
-  delay(100);
-   BLEDevice::stopAdvertising();
+  delay(1000);
+  BLEDevice::stopAdvertising();
   BLEDevice::deinit();
   pref.end();
 
   *ssid = wifiSsid;
   *pass = wifiPass;
-  *UUID = espUuid;
+  *UUID = _uuid;
 }
