@@ -101,7 +101,7 @@ class _MotionPageState extends State<MotionPage> {
                     animateFromLastPercent: true,
                     radius: 180,
                     lineWidth: 14,
-                    percent: thresholdValue / 1800, //thresholdValue/180,
+                    percent: thresholdValue / 18000, //thresholdValue/180,
                     progressColor: Colors.indigo,
 
                     center: Column(
@@ -167,7 +167,7 @@ class _MotionPageState extends State<MotionPage> {
                               onPressed: () {
                                 setState(() {
                                   if (thresholdValue > 0) {
-                                    thresholdValue -= 60.0;
+                                    thresholdValue -= 600.0;
                                   }
                                   mqttClientWrapper.publishMessage(
                                       'T$thresholdValue', 'motion\\$uuid');
@@ -180,9 +180,9 @@ class _MotionPageState extends State<MotionPage> {
                               label: const Text("10 min"),
                               onPressed: () {
                                 setState(() {
-                                  if (thresholdValue < 7200) {
+                                  if (thresholdValue < 72000) {
                                     //180
-                                    thresholdValue += 60.0;
+                                    thresholdValue += 600.0;
                                   }
                                   mqttClientWrapper.publishMessage(
                                       'T$thresholdValue', 'motion\\$uuid');
