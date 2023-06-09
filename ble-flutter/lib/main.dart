@@ -5,12 +5,65 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'home_page.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 
-void main() => runApp(const MyApp());
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final uuidExists = await checkUuidExists();
+  if (uuidExists) {
+    runApp(const MqttApp());
+  } else {
+    // Gather and save UUID using Bluetooth
+    runApp(const BleApp());
+  }
+}
 
 late String uuid;
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+Future<bool> checkUuidExists() async {
+  try {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    // await prefs.clear();
+    uuid = prefs.getString('UUID')!;
+    print('OLDU');
+    print('UUID: $uuid');
+    return uuid.isNotEmpty;
+  }
+  catch (e) {
+    print('OLMADI: $e');
+    return false;
+  }
+}
+
+Future<void> saveUuid(String uuid) async {
+  print('SAVING UUID...');
+  try {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString('UUID', uuid);
+    final a = prefs.getString('UUID');
+    print('Saved UUID: $a');
+  }
+  catch (e) {
+    print('Error at saveUuid: $e');
+  }
+}
+
+class MqttApp extends StatelessWidget {
+  const MqttApp({super.key});
+
+  @override
+  Widget build(BuildContext context) => MaterialApp(
+        title: 'MQTT Demo',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+        ),
+        home: const HomePage(),
+      );
+}
+
+class BleApp extends StatelessWidget {
+  const BleApp({super.key});
 
   @override
   Widget build(BuildContext context) => MaterialApp(
@@ -130,8 +183,8 @@ class _BlePageState extends State<BlePage> {
               uuid = String.fromCharCodes(value);
               if (uuid == "") {
                 throw Exception("UUID is empty so go get it again!!!");
-              }
-              else {
+              } else {
+                saveUuid(uuid);
                 nav();
               }
               print("The uuid is: $uuid");
@@ -238,7 +291,12 @@ class _ScanningScreenState extends State<ScanningScreen> {
                 size: 50.0,
               )),
           SizedBox(height: 150),
-          Text("This should not take more than one minute.", style: TextStyle(fontSize: 12,),),
+          Text(
+            "This should not take more than one minute.",
+            style: TextStyle(
+              fontSize: 12,
+            ),
+          ),
         ],
       ),
     );

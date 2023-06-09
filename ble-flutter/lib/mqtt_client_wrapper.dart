@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 
+import 'main.dart';
+
 // DISCLAIMER: Unsubscribe func is not tested.
 
 // connection states for easy identification
@@ -34,9 +36,11 @@ class MQTTClientWrapper {
     }
 
     // Set a unique identifier for the client
-    final uniqueIdentifier =
-        'myClientId-${DateTime.now().millisecondsSinceEpoch}';
-    client.clientIdentifier = uniqueIdentifier;
+    // final uniqueIdentifier =
+    //     'myClientId-${DateTime.now().millisecondsSinceEpoch}';
+    // client.clientIdentifier = uniqueIdentifier;
+
+    client.clientIdentifier = uuid;
 
     // check the if the username and password are empty if so connect to the client without
     // authentication

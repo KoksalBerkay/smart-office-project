@@ -41,7 +41,7 @@ class _LightPageState extends State<LightPage> {
             light = double.parse(actualValue!).roundToDouble();
             thresholdValue = double.parse(messageList[1]).roundToDouble();
             state = messageList[2];
-            _sliderValue = thresholdValue / 36;
+            _sliderValue = thresholdValue / 40;
             if (state == "1") {
               state = "ON";
             } else if (state == "0") {
@@ -105,14 +105,14 @@ class _LightPageState extends State<LightPage> {
                       radius: 160,
                       lineWidth: 14,
                       animateFromLastPercent: true,
-                      percent: thresholdValue / 3600, // THIS MIGHT NOT WORK
+                      percent: thresholdValue / 4000, // THIS MIGHT NOT WORK
                       progressColor: Colors.indigo,
                       center: Column(
                         children: [
                           const SizedBox(height: 116),
                           Text(
                             // light -> gelen ışık verisi || threshold -> threshold verisi
-                            'Light: %${(light / 36).toStringAsFixed(2)}',
+                            'Light: %${(light / 40).toStringAsFixed(2)}',
                             style: const TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
@@ -120,7 +120,7 @@ class _LightPageState extends State<LightPage> {
                           ),
                           Text(
                             // light -> gelen ışık verisi || threshold -> threshold verisi
-                            'Threshold: %${(thresholdValue / 36).toStringAsFixed(2)}',
+                            'Threshold: %${(thresholdValue / 40).toStringAsFixed(2)}',
                             style: const TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
@@ -179,7 +179,7 @@ class _LightPageState extends State<LightPage> {
                                   setState(() {
                                     _sliderValue = value;
                                     thresholdValue =
-                                        (_sliderValue * 36).toDouble();
+                                        (_sliderValue * 40).toDouble();
                                     mqttClientWrapper.publishMessage(
                                         'T$thresholdValue', 'light\\$uuid');
                                   });
