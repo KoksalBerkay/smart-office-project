@@ -3,26 +3,26 @@ import 'dart:async';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 
-import 'main.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // DISCLAIMER: Unsubscribe func is not tested.
 
 // connection states for easy identification
 enum MqttCurrentConnectionState {
-  IDLE,
-  CONNECTING,
-  CONNECTED,
-  DISCONNECTED,
-  ERROR_WHEN_CONNECTING
+  idle,
+  connecting,
+  connected,
+  disconnected,
+  errorWhenConnecting
 }
 
-enum MqttSubscriptionState { IDLE, SUBSCRIBED }
+enum MqttSubscriptionState { idle, subscribed }
 
 class MQTTClientWrapper {
   late MqttServerClient client;
 
-  MqttCurrentConnectionState connectionState = MqttCurrentConnectionState.IDLE;
-  MqttSubscriptionState subscriptionState = MqttSubscriptionState.IDLE;
+  MqttCurrentConnectionState connectionState = MqttCurrentConnectionState.idle;
+  MqttSubscriptionState subscriptionState = MqttSubscriptionState.idle;
 
   void prepareMqttClient(
       String username, String password, String host, int port) async {
@@ -40,6 +40,9 @@ class MQTTClientWrapper {
     //     'myClientId-${DateTime.now().millisecondsSinceEpoch}';
     // client.clientIdentifier = uniqueIdentifier;
 
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final uuid = prefs.getString('UUID')!;
+
     client.clientIdentifier = uuid;
 
     // check the if the username and password are empty if so connect to the client without
@@ -55,21 +58,21 @@ class MQTTClientWrapper {
   Future<void> _connectClientWithAuth(String username, String password) async {
     try {
       print('client connecting....');
-      connectionState = MqttCurrentConnectionState.CONNECTING;
+      connectionState = MqttCurrentConnectionState.connecting;
       await client.connect(username, password);
     } on Exception catch (e) {
       print('client exception - $e');
-      connectionState = MqttCurrentConnectionState.ERROR_WHEN_CONNECTING;
+      connectionState = MqttCurrentConnectionState.errorWhenConnecting;
       client.disconnect();
     }
 
     if (client.connectionStatus?.state == MqttConnectionState.connected) {
-      connectionState = MqttCurrentConnectionState.CONNECTED;
+      connectionState = MqttCurrentConnectionState.connected;
       print('client connected');
     } else {
       print(
           'ERROR client connection failed - disconnecting, status is ${client.connectionStatus}');
-      connectionState = MqttCurrentConnectionState.ERROR_WHEN_CONNECTING;
+      connectionState = MqttCurrentConnectionState.errorWhenConnecting;
       client.disconnect();
     }
   }
@@ -77,21 +80,21 @@ class MQTTClientWrapper {
   Future<void> _connectClientWithoutAuth() async {
     try {
       print('client connecting....');
-      connectionState = MqttCurrentConnectionState.CONNECTING;
+      connectionState = MqttCurrentConnectionState.connecting;
       await client.connect();
     } on Exception catch (e) {
       print('client exception - $e');
-      connectionState = MqttCurrentConnectionState.ERROR_WHEN_CONNECTING;
+      connectionState = MqttCurrentConnectionState.errorWhenConnecting;
       client.disconnect();
     }
 
     if (client.connectionStatus?.state == MqttConnectionState.connected) {
-      connectionState = MqttCurrentConnectionState.CONNECTED;
+      connectionState = MqttCurrentConnectionState.connected;
       print('client connected');
     } else {
       print(
           'ERROR client connection failed - disconnecting, status is ${client.connectionStatus}');
-      connectionState = MqttCurrentConnectionState.ERROR_WHEN_CONNECTING;
+      connectionState = MqttCurrentConnectionState.errorWhenConnecting;
       client.disconnect();
     }
   }
@@ -157,23 +160,23 @@ class MQTTClientWrapper {
     final MqttClientPayloadBuilder builder = MqttClientPayloadBuilder();
     builder.addString(message);
 
-    print('Publishing message "$message" to topic ${topicName}');
+    print('Publishing message "$message" to topic $topicName');
     client.publishMessage(topicName, MqttQos.exactlyOnce, builder.payload!);
   }
 
   // callbacks for different events
   void _onSubscribed(String topic) {
     print('Subscription confirmed for topic $topic');
-    subscriptionState = MqttSubscriptionState.SUBSCRIBED;
+    subscriptionState = MqttSubscriptionState.subscribed;
   }
 
   void _onDisconnected() {
     print('OnDisconnected client callback - Client disconnection');
-    connectionState = MqttCurrentConnectionState.DISCONNECTED;
+    connectionState = MqttCurrentConnectionState.disconnected;
   }
 
   void _onConnected() {
-    connectionState = MqttCurrentConnectionState.CONNECTED;
+    connectionState = MqttCurrentConnectionState.connected;
     print('OnConnected client callback - Client connection was sucessful');
   }
 }

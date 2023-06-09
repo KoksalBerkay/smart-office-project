@@ -4,9 +4,7 @@ import 'pages/bluetooth_page.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'home_page.dart';
 import 'package:network_info_plus/network_info_plus.dart';
-
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:io';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,14 +22,11 @@ late String uuid;
 Future<bool> checkUuidExists() async {
   try {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    // await prefs.clear();
     uuid = prefs.getString('UUID')!;
-    print('OLDU');
-    print('UUID: $uuid');
+    print('UUID is found: $uuid');
     return uuid.isNotEmpty;
-  }
-  catch (e) {
-    print('OLMADI: $e');
+  } catch (e) {
+    print('Could not find the UUID: $e');
     return false;
   }
 }
@@ -43,8 +38,7 @@ Future<void> saveUuid(String uuid) async {
     prefs.setString('UUID', uuid);
     final a = prefs.getString('UUID');
     print('Saved UUID: $a');
-  }
-  catch (e) {
+  } catch (e) {
     print('Error at saveUuid: $e');
   }
 }
@@ -139,10 +133,10 @@ class _BlePageState extends State<BlePage> {
     print('start scan work');
     late BluetoothDevice? mydevice;
 
-    var subscription = flutterBlue.scanResults.listen((results) async {
+    flutterBlue.scanResults.listen((results) async {
       for (ScanResult r in results) {
         var cleanData = r.advertisementData.manufacturerData.toString();
-        print('->' + cleanData + '<-');
+        print('->$cleanData<-');
 
         if (cleanData == teamManufacturerData) {
           flutterBlue.stopScan();
@@ -201,6 +195,8 @@ class _BlePageState extends State<BlePage> {
     String? wifiName = await NetworkInfo().getWifiName();
     if (wifiName != null) {
       _ssidController.text = wifiName.replaceAll('"', "");
+    } else {
+      print('wifiName is null');
     }
   }
 
@@ -253,7 +249,7 @@ class _BlePageState extends State<BlePage> {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => ScanningScreen()));
+                                builder: (context) => const ScanningScreen()));
                       }
                     },
                     child: const Text('Submit'),
