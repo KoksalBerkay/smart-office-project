@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
 import '../home_page.dart';
-import '../main.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../mqtt_client_wrapper.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
+
+late String uuid;
+
+// get the uuid from the shared preferences
+Future<void> getUuid() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  uuid = prefs.getString('uuid')!;
+}
 
 class LightPage extends StatefulWidget {
   const LightPage({Key? key}) : super(key: key);
@@ -26,32 +34,35 @@ class _LightPageState extends State<LightPage> {
 
     // wait for the client to connect
     Future.delayed(const Duration(seconds: 1)).then((_) {
-      print("subscribing...");
-      mqttClientWrapper.subscribeToTopic("light\\$uuid")?.listen((message) {
-        setState(() {
-          print("Message: " + message);
+      // wait for to get the uuid
+      getUuid().then((_) {
+        print("subscribing...");
+        mqttClientWrapper.subscribeToTopic("light\\$uuid")?.listen((message) {
+          setState(() {
+            print("Message: " + message);
 
-          List<String> messageList = message.split('/');
+            List<String> messageList = message.split('/');
 
-          actualValue = messageList[0];
-          print(actualValue![0]);
-          if (actualValue![0] == "T") {
-            null;
-          } else {
-            light = double.parse(actualValue!).roundToDouble();
-            thresholdValue = double.parse(messageList[1]).roundToDouble();
-            state = messageList[2];
-            _sliderValue = thresholdValue / 40;
-            if (state == "1") {
-              state = "ON";
-            } else if (state == "0") {
-              state = "OFF";
+            actualValue = messageList[0];
+            print(actualValue![0]);
+            if (actualValue![0] == "T") {
+              null;
+            } else {
+              light = double.parse(actualValue!).roundToDouble();
+              thresholdValue = double.parse(messageList[1]).roundToDouble();
+              state = messageList[2];
+              _sliderValue = thresholdValue / 40;
+              if (state == "1") {
+                state = "ON";
+              } else if (state == "0") {
+                state = "OFF";
+              }
+
+              print("Light: $light");
+              print('Threshold Value: $thresholdValue');
+              print('State: $state');
             }
-
-            print("Light: $light");
-            print('Threshold Value: $thresholdValue');
-            print('State: $state');
-          }
+          });
         });
       });
     });

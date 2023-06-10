@@ -126,7 +126,7 @@ class _BlePageState extends State<BlePage> {
     super.dispose();
   }
 
-  _scanconnect() async {
+  _scanConnect() async {
     String teamManufacturerData = "{16971: [77, 71]}";
     // Start scanning
     flutterBlue.startScan(timeout: const Duration(seconds: 2));
@@ -205,57 +205,83 @@ class _BlePageState extends State<BlePage> {
         appBar: AppBar(
           title: Text(widget.title),
         ),
-        body: Form(
-          key: _formKey,
-          child: Padding(
+        body: LayoutBuilder(
+          builder: (context, constraints) => SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                TextFormField(
-                  controller: _ssidController,
-                  decoration: const InputDecoration(
-                    hintText: 'Enter your wifi ssid',
-                  ),
-                  onSaved: (value) {
-                    ssid = value!;
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter some text';
-                    }
-                  },
-                ),
-                TextFormField(
-                  decoration: const InputDecoration(
-                    hintText: 'Enter your wifi password',
-                  ),
-                  onSaved: (value) {
-                    pass = value!;
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter some text';
-                    }
-                  },
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16.0),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        _formKey.currentState!.save();
-                        _scanconnect();
-                        Navigator.push(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: constraints.maxHeight,
+              ),
+              child: Form(
+                key: _formKey, // Assign the _formKey to the Form widget
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    const SizedBox(height: 80.0), // Added space above the form
+                    TextFormField(
+                      controller: _ssidController,
+                      decoration: const InputDecoration(
+                        labelText: 'Wi-Fi SSID',
+                        hintText: 'Enter your Wi-Fi SSID',
+                        border: OutlineInputBorder(),
+                      ),
+                      onSaved: (value) {
+                        ssid = value!;
+                      },
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter some text';
+                        }
+                        return null; // Return null for no validation errors
+                      },
+                    ),
+                    const SizedBox(height: 16.0), // Added vertical spacing
+                    TextFormField(
+                      decoration: const InputDecoration(
+                        labelText: 'Password',
+                        hintText: 'Enter your Wi-Fi password',
+                        border: OutlineInputBorder(),
+                      ),
+                      onSaved: (value) {
+                        pass = value!;
+                      },
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter some text';
+                        }
+                        return null; // Return null for no validation errors
+                      },
+                    ),
+                    const SizedBox(height: 32.0), // Added vertical spacing
+                    ElevatedButton(
+                      onPressed: () {
+                        if (_formKey.currentState!.validate()) {
+                          _formKey.currentState!.save();
+                          _scanConnect();
+                          Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => const ScanningScreen()));
-                      }
-                    },
-                    child: const Text('Submit'),
-                  ),
+                              builder: (context) => const ScanningScreen(),
+                            ),
+                          );
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                      ),
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 16.0),
+                        child: Text(
+                          'Submit',
+                          style: TextStyle(fontSize: 16.0),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),

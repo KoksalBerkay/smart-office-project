@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import '../home_page.dart';
-import '../main.dart';
 import '../mqtt_client_wrapper.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-//TODO: Check the connection state and display a message if the connection is lost
-//TODO: Make sure the connection is re-established when the connection is lost
-//TODO: Add a loading indicator when the connection is being established
-//TODO: Make sure that the connection is established before subscribing to a topic
-// ! Make sure that the format of message publishing is correct
+late String uuid;
+
+// get the uuid from the shared preferences
+Future<void> getUuid() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  uuid = prefs.getString('uuid')!;
+}
 
 class TemperaturePage extends StatefulWidget {
   const TemperaturePage({Key? key}) : super(key: key);
@@ -31,32 +33,35 @@ class _TemperaturePageState extends State<TemperaturePage> {
 
     // wait for the client to connect
     Future.delayed(const Duration(seconds: 1)).then((_) {
-      print("subscribing...");
-      mqttClientWrapper.subscribeToTopic("temp\\$uuid")?.listen((message) {
-        setState(() {
-          print("Message: " + message);
+      // wait for to get the uuid
+      getUuid().then((_) {
+        print("subscribing...");
+        mqttClientWrapper.subscribeToTopic("temp\\$uuid")?.listen((message) {
+          setState(() {
+            print("Message: $message");
 
-          List<String> messageList = message.split('/');
+            List<String> messageList = message.split('/');
 
-          actualValue = messageList[0];
+            actualValue = messageList[0];
 
-          if (actualValue![0] == "T") {
-            null;
-          } else {
-            heat = double.parse(actualValue!);
-            thresholdValue = double.parse(messageList[1]);
-            state = messageList[2];
+            if (actualValue![0] == "T") {
+              null;
+            } else {
+              heat = double.parse(actualValue!);
+              thresholdValue = double.parse(messageList[1]);
+              state = messageList[2];
 
-            if (state == "1") {
-              state = "ON";
-            } else if (state == "0") {
-              state = "OFF";
+              if (state == "1") {
+                state = "ON";
+              } else if (state == "0") {
+                state = "OFF";
+              }
+
+              print("Heat: $heat");
+              print('Threshold Value: $thresholdValue');
+              print('State: $state');
             }
-
-            print("Heat: $heat");
-            print('Threshold Value: $thresholdValue');
-            print('State: $state');
-          }
+          });
         });
       });
     });

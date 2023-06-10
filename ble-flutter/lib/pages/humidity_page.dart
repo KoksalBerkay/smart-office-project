@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import '../home_page.dart';
-import '../main.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../mqtt_client_wrapper.dart';
 
+late String uuid;
+
+// get the uuid from the shared preferences
+Future<void> getUuid() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  uuid = prefs.getString('uuid')!;
+}
 
 class HumidityPage extends StatefulWidget {
   const HumidityPage({Key? key}) : super(key: key);
@@ -13,7 +20,7 @@ class HumidityPage extends StatefulWidget {
 }
 
 class _HumidityPageState extends State<HumidityPage> {
-  double humidity= 0.0;
+  double humidity = 0.0;
   String? actualValue = "";
   MQTTClientWrapper mqttClientWrapper = MQTTClientWrapper();
 
@@ -24,23 +31,27 @@ class _HumidityPageState extends State<HumidityPage> {
 
     // wait for the client to connect
     Future.delayed(const Duration(seconds: 1)).then((_) {
-      print("subscribing...");
-      mqttClientWrapper.subscribeToTopic("humidity\\$uuid")?.listen((message) {
-        setState(() {
-          print("Message: " + message);
+      // wait for to get the uuid
+      getUuid().then((_) {
+        print("subscribing...");
+        mqttClientWrapper
+            .subscribeToTopic("humidity\\$uuid")
+            ?.listen((message) {
+          setState(() {
+            print("Message: " + message);
 
-          List<String> messageList = message.split('/');
+            List<String> messageList = message.split('/');
 
-          actualValue = messageList[0];
+            actualValue = messageList[0];
 
-          if (actualValue![0] == "T") {
-            null;
-          } else {
-            humidity = double.parse(actualValue!);
+            if (actualValue![0] == "T") {
+              null;
+            } else {
+              humidity = double.parse(actualValue!);
 
-
-            print("Humidity: $humidity");
-          }
+              print("Humidity: $humidity");
+            }
+          });
         });
       });
     });

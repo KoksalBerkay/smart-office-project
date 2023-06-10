@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
-import '../main.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../mqtt_client_wrapper.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import '../home_page.dart';
+
+late String uuid;
+
+// get the uuid from the shared preferences
+Future<void> getUuid() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  uuid = prefs.getString('uuid')!;
+}
 
 class MotionPage extends StatefulWidget {
   const MotionPage({Key? key}) : super(key: key);
@@ -25,29 +33,32 @@ class _MotionPageState extends State<MotionPage> {
 
     // wait for the client to connect
     Future.delayed(const Duration(seconds: 1)).then((_) {
-      print("subscribing...");
-      mqttClientWrapper.subscribeToTopic("motion\\$uuid")?.listen((message) {
-        setState(() {
-          print("Message: " + message);
-          List<String> messageList = message.split('/');
-          actualValue = messageList[0];
-          if (actualValue![0] == 'T') {
-            null;
-          } else {
-            motion = double.parse(actualValue!);
-            thresholdValue = double.parse(messageList[1]);
-            state = messageList[2];
-            if (state == '1') {
-              state = 'ON';
-            }
-            if (state == '0') {
-              state = 'OFF';
-            }
+      // wait for to get the uuid
+      getUuid().then((_) {
+        print("subscribing...");
+        mqttClientWrapper.subscribeToTopic("motion\\$uuid")?.listen((message) {
+          setState(() {
+            print("Message: " + message);
+            List<String> messageList = message.split('/');
+            actualValue = messageList[0];
+            if (actualValue![0] == 'T') {
+              null;
+            } else {
+              motion = double.parse(actualValue!);
+              thresholdValue = double.parse(messageList[1]);
+              state = messageList[2];
+              if (state == '1') {
+                state = 'ON';
+              }
+              if (state == '0') {
+                state = 'OFF';
+              }
 
-            print("Motionless time: " + motion.toString());
-            print('Threshold Value: $thresholdValue');
-            print('State: $state');
-          }
+              print("Motionless time: $motion");
+              print('Threshold Value: $thresholdValue');
+              print('State: $state');
+            }
+          });
         });
       });
     });

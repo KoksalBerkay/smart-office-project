@@ -35,13 +35,11 @@ class MQTTClientWrapper {
       _setupMqttClientWithAuth(username, host, port);
     }
 
-    // Set a unique identifier for the client
-    // final uniqueIdentifier =
-    //     'myClientId-${DateTime.now().millisecondsSinceEpoch}';
-    // client.clientIdentifier = uniqueIdentifier;
-
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final uuid = prefs.getString('UUID')!;
+
+    // delay to wait for the uuid to be gotten from the shared preferences
+    await Future.delayed(const Duration(milliseconds: 100));
 
     client.clientIdentifier = uuid;
 
