@@ -97,14 +97,6 @@ class _LightPageState extends State<LightPage> {
                       color: Colors.indigo,
                     ),
                   ),
-                  const RotatedBox(
-                    quarterTurns: 135,
-                    child: Icon(
-                      Icons.bar_chart_rounded,
-                      color: Colors.indigo,
-                      size: 28,
-                    ),
-                  )
                 ],
               ),
               Expanded(

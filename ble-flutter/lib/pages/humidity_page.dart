@@ -86,14 +86,6 @@ class _HumidityPageState extends State<HumidityPage> {
                       color: Colors.indigo,
                     ),
                   ),
-                  const RotatedBox(
-                    quarterTurns: 135,
-                    child: Icon(
-                      Icons.bar_chart_rounded,
-                      color: Colors.indigo,
-                      size: 28,
-                    ),
-                  )
                 ],
               ),
               Expanded(
@@ -122,7 +114,7 @@ class _HumidityPageState extends State<HumidityPage> {
                     const SizedBox(height: 24),
                     const Center(
                       child: Text(
-                        'Humidity',
+                        'HUMIDITY',
                         style: TextStyle(
                             fontWeight: FontWeight.bold, color: Colors.black54),
                       ),

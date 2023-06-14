@@ -96,14 +96,6 @@ class _TemperaturePageState extends State<TemperaturePage> {
                       color: Colors.indigo,
                     ),
                   ),
-                  const RotatedBox(
-                    quarterTurns: 135,
-                    child: Icon(
-                      Icons.bar_chart_rounded,
-                      color: Colors.indigo,
-                      size: 28,
-                    ),
-                  )
                 ],
               ),
               Expanded(
@@ -120,7 +112,7 @@ class _TemperaturePageState extends State<TemperaturePage> {
                         children: [
                           const SizedBox(height: 116),
                           Text(
-                            'Heat: ${heat.toStringAsFixed(2)}\u00B0',
+                            'Temperature: ${heat.toStringAsFixed(2)}\u00B0',
                             style: const TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,

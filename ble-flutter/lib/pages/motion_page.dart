@@ -93,14 +93,6 @@ class _MotionPageState extends State<MotionPage> {
                       color: Colors.indigo,
                     ),
                   ),
-                  const RotatedBox(
-                    quarterTurns: 135,
-                    child: Icon(
-                      Icons.bar_chart_rounded,
-                      color: Colors.indigo,
-                      size: 28,
-                    ),
-                  )
                 ],
               ),
               Expanded(
