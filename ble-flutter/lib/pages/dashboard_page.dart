@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:intl/intl.dart';
 import '../home_page.dart';
 
@@ -35,32 +34,32 @@ class _DashboardPageState extends State<DashboardPage> {
     getUuid();
   }
 
-  void selectStartDate(BuildContext context) {
-    DatePicker.showDatePicker(
-      context,
-      showTitleActions: true,
-      onConfirm: (date) {
-        setState(() {
-          startDate = date;
-        });
-      },
-      currentTime: startDate,
-      locale: LocaleType.en,
+  Future<void> selectStartDate(BuildContext context) async {
+    final selectedDate = await showDatePicker(
+      context: context,
+      initialDate: startDate,
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
     );
+    if (selectedDate != null) {
+      setState(() {
+        startDate = selectedDate;
+      });
+    }
   }
 
-  void selectEndDate(BuildContext context) {
-    DatePicker.showDatePicker(
-      context,
-      showTitleActions: true,
-      onConfirm: (date) {
-        setState(() {
-          endDate = date;
-        });
-      },
-      currentTime: endDate,
-      locale: LocaleType.en,
+  Future<void> selectEndDate(BuildContext context) async {
+    final selectedDate = await showDatePicker(
+      context: context,
+      initialDate: endDate,
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
     );
+    if (selectedDate != null) {
+      setState(() {
+        endDate = selectedDate;
+      });
+    }
   }
 
   String formatDateTime(DateTime dateTime) {
@@ -130,12 +129,12 @@ class _DashboardPageState extends State<DashboardPage> {
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () => selectStartDate(context),
-              child: Text('Select Start Date'),
+              child: const Text('Select Start Date'),
             ),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () => selectEndDate(context),
-              child: Text('Select End Date'),
+              child: const Text('Select End Date'),
             ),
             const SizedBox(height: 16),
             Text(
