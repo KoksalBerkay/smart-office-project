@@ -1,5 +1,4 @@
 import os
-import csv
 import time
 import pandas as pd
 import pyarrow as pa
@@ -16,14 +15,18 @@ def save_to_db(_file_name: str, timestamp: str, value: str, threshold: str, stat
     file_path = 'db/' + _file_name + '.parquet'
 
     try:
-        table = pq.read_table(file_path)
-        df = table.to_pandas()
+        # table = pq.read_table(file_path)
+        # df = table.to_pandas()
+
+        df = pd.read_parquet(file_path)
 
         df[timestamp] = [value, threshold, state]
 
-        table = pa.Table.from_pandas(df)
+        # table = pa.Table.from_pandas(df)
 
-        pq.write_table(table, file_path)
+        # pq.write_table(table, file_path)
+
+        df.to_parquet(file_path)
          
     except FileNotFoundError:
         data = {timestamp: [value, threshold, state]}
