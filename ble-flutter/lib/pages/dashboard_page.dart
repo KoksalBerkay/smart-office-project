@@ -1,5 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../home_page.dart';
+
+const urlPrefix = 'http://192.168.1.97:8000';
+
+late String uuid;
+bool isSuccess = false;
+
+// get the uuid from the shared preferences
+Future<void> getUuid() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  uuid = prefs.getString('UUID')!;
+}
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({Key? key}) : super(key: key);
@@ -9,6 +22,14 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
+  @override
+  void initState() {
+    super.initState();
+    getUuid().then((_) {
+      makePostRequest();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -32,13 +53,26 @@ class _DashboardPageState extends State<DashboardPage> {
         ),
       ),
       drawer: _buildDrawer(context),
-      body: const Center(
-        child: Text(
-          "Dashboard",
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-          ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              'Dashboard',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'isSuccess: $isSuccess',
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -91,5 +125,29 @@ class _DashboardPageState extends State<DashboardPage> {
         ],
       ),
     );
+  }
+
+  Future<void> makePostRequest() async {
+    final headers = {
+      'accept': 'application/json',
+      'Content-Type': 'application/json',
+    };
+    print('FOUND UUID: $uuid');
+    final data = '{"uuid": "$uuid",'
+        '"data_type": "temp",'
+        '"start_timestamp": 1686790346570,'
+        '"stop_timestamp": 0}';
+
+    print('DATA: $data');
+
+    final url = Uri.parse('http://192.168.1.97:8000/get_data/');
+
+    final res = await http.post(url, headers: headers, body: data);
+    final status = res.statusCode;
+    if (status != 200) throw Exception('http.post error: statusCode= $status');
+    if (status == 200) {
+      isSuccess = true;
+    }
+    print(res.body);
   }
 }
