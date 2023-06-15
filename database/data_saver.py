@@ -1,8 +1,6 @@
 import os
 import time
 import pandas as pd
-import pyarrow as pa
-import pyarrow.parquet as pq
 import paho.mqtt.client as mqtt
 
 
