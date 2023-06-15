@@ -1,0 +1,9 @@
+#user deny $SYS/#
+topic deny temp/#
+topic deny humidity/#
+topic deny light/#
+topic deny motion/#
+topic readwrite #
+#admin
+user admin
+topic readwrite #
