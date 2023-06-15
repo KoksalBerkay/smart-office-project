@@ -1,6 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
+import 'package:intl/intl.dart';
 import '../home_page.dart';
 
 const urlPrefix = 'http://192.168.1.97:8000';
@@ -22,12 +26,71 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
+  DateTime startDate = DateTime.now().subtract(const Duration(days: 7));
+  DateTime endDate = DateTime.now();
+
   @override
   void initState() {
     super.initState();
-    getUuid().then((_) {
-      makePostRequest();
-    });
+    getUuid();
+  }
+
+  void selectStartDate(BuildContext context) {
+    DatePicker.showDatePicker(
+      context,
+      showTitleActions: true,
+      onConfirm: (date) {
+        setState(() {
+          startDate = date;
+        });
+      },
+      currentTime: startDate,
+      locale: LocaleType.en,
+    );
+  }
+
+  void selectEndDate(BuildContext context) {
+    DatePicker.showDatePicker(
+      context,
+      showTitleActions: true,
+      onConfirm: (date) {
+        setState(() {
+          endDate = date;
+        });
+      },
+      currentTime: endDate,
+      locale: LocaleType.en,
+    );
+  }
+
+  String formatDateTime(DateTime dateTime) {
+    final formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+    return formatter.format(dateTime);
+  }
+
+  Future<void> makePostRequest() async {
+    final headers = {
+      'accept': 'application/json',
+      'Content-Type': 'application/json',
+    };
+    print('FOUND UUID: $uuid');
+    final data = {
+      'uuid': uuid,
+      'data_type': 'temp',
+      'start_timestamp': startDate.millisecondsSinceEpoch,
+      'stop_timestamp': endDate.millisecondsSinceEpoch,
+    };
+    print('DATA: $data');
+
+    final url = Uri.parse('http://192.168.1.97:8000/get_data/');
+
+    final res = await http.post(url, headers: headers, body: jsonEncode(data));
+    final status = res.statusCode;
+    if (status == 200) {
+      isSuccess = true;
+    }
+    print("BODY: ${res.body}");
+    if (status != 200) throw Exception('http.post error: statusCode= $status');
   }
 
   @override
@@ -60,17 +123,39 @@ class _DashboardPageState extends State<DashboardPage> {
             const Text(
               'Dashboard',
               style: TextStyle(
-                fontSize: 24,
+                fontSize: 32,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => selectStartDate(context),
+              child: Text('Select Start Date'),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => selectEndDate(context),
+              child: Text('Select End Date'),
+            ),
+            const SizedBox(height: 16),
             Text(
-              'isSuccess: $isSuccess',
+              'Start Date: ${formatDateTime(startDate)}',
               style: const TextStyle(
-                fontSize: 24,
+                fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
+            ),
+            Text(
+              'End Date: ${formatDateTime(endDate)}',
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: makePostRequest,
+              child: const Text('Submit'),
             ),
           ],
         ),
@@ -125,29 +210,5 @@ class _DashboardPageState extends State<DashboardPage> {
         ],
       ),
     );
-  }
-
-  Future<void> makePostRequest() async {
-    final headers = {
-      'accept': 'application/json',
-      'Content-Type': 'application/json',
-    };
-    print('FOUND UUID: $uuid');
-    final data = '{"uuid": "$uuid",'
-        '"data_type": "temp",'
-        '"start_timestamp": 1686790346570,'
-        '"stop_timestamp": 0}';
-
-    print('DATA: $data');
-
-    final url = Uri.parse('http://192.168.1.97:8000/get_data/');
-
-    final res = await http.post(url, headers: headers, body: data);
-    final status = res.statusCode;
-    if (status != 200) throw Exception('http.post error: statusCode= $status');
-    if (status == 200) {
-      isSuccess = true;
-    }
-    print(res.body);
   }
 }
