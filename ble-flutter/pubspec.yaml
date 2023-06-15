@@ -43,6 +43,8 @@ dependencies:
   network_info_plus: ^3.0.5
   shared_preferences: ^2.1.2
   http: ^0.13.6
+  intl: ^0.18.1
+  flutter_datetime_picker: ^1.5.1
 
 dev_dependencies:
   flutter_test:
