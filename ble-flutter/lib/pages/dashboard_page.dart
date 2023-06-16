@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -11,7 +10,7 @@ const urlPrefix = 'http://192.168.1.97:8000';
 late String uuid;
 bool isSuccess = false;
 
-// get the uuid from the shared preferences
+// Get the uuid from the shared preferences
 Future<void> getUuid() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   uuid = prefs.getString('UUID')!;
@@ -27,6 +26,7 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage> {
   DateTime startDate = DateTime.now().subtract(const Duration(days: 7));
   DateTime endDate = DateTime.now();
+  DateRange? selectedRange;
 
   @override
   void initState() {
@@ -44,6 +44,8 @@ class _DashboardPageState extends State<DashboardPage> {
     if (selectedDate != null) {
       setState(() {
         startDate = selectedDate;
+        selectedRange =
+            null; // Reset the selected range when a specific start date is chosen
       });
     }
   }
@@ -58,6 +60,8 @@ class _DashboardPageState extends State<DashboardPage> {
     if (selectedDate != null) {
       setState(() {
         endDate = selectedDate;
+        selectedRange =
+            null; // Reset the selected range when a specific end date is chosen
       });
     }
   }
@@ -65,6 +69,35 @@ class _DashboardPageState extends State<DashboardPage> {
   String formatDateTime(DateTime dateTime) {
     final formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
     return formatter.format(dateTime);
+  }
+
+  String displayDateTime(DateTime dateTime) {
+    final formatter = DateFormat('dd.MM.yyyy');
+    return formatter.format(dateTime);
+  }
+
+  void updateDateRange(DateRange range) {
+    setState(() {
+      selectedRange = range;
+      switch (range) {
+        case DateRange.lastWeek:
+          startDate = DateTime.now().subtract(const Duration(days: 7));
+          endDate = DateTime.now();
+          break;
+        case DateRange.last2Weeks:
+          startDate = DateTime.now().subtract(const Duration(days: 14));
+          endDate = DateTime.now();
+          break;
+        case DateRange.lastMonth:
+          startDate = DateTime.now().subtract(const Duration(days: 30));
+          endDate = DateTime.now();
+          break;
+        case DateRange.last3Months:
+          startDate = DateTime.now().subtract(const Duration(days: 90));
+          endDate = DateTime.now();
+          break;
+      }
+    });
   }
 
   Future<void> makePostRequest() async {
@@ -115,46 +148,130 @@ class _DashboardPageState extends State<DashboardPage> {
         ),
       ),
       drawer: _buildDrawer(context),
-      body: Center(
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Dashboard',
-              style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
+            const Center(
+              child: Text(
+                'Dashboard',
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
             const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => selectStartDate(context),
-              child: const Text('Select Start Date'),
+            Row(
+              children: [
+                const SizedBox(height: 16, width: 16),
+                ElevatedButton(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: const Text('Select Range'),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              ElevatedButton(
+                                onPressed: () {
+                                  Navigator.pop(context, DateRange.lastWeek);
+                                },
+                                child: const Text('Last Week'),
+                              ),
+                              ElevatedButton(
+                                onPressed: () {
+                                  Navigator.pop(context, DateRange.last2Weeks);
+                                },
+                                child: const Text('Last 2 Weeks'),
+                              ),
+                              ElevatedButton(
+                                onPressed: () {
+                                  Navigator.pop(context, DateRange.lastMonth);
+                                },
+                                child: const Text('Last Month'),
+                              ),
+                              ElevatedButton(
+                                onPressed: () {
+                                  Navigator.pop(context, DateRange.last3Months);
+                                },
+                                child: const Text('Last 3 Months'),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ).then((selectedRange) {
+                      if (selectedRange != null) {
+                        updateDateRange(selectedRange);
+                      }
+                    });
+                  },
+                  child: const Text('Select Date Range'),
+                ),
+                const SizedBox(height: 16, width: 32),
+                ElevatedButton(
+                  onPressed: () => showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text('Select Custom Date'),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ElevatedButton(
+                              onPressed: () {
+                                Navigator.pop(context, 'start');
+                              },
+                              child: const Text('Select Start Date'),
+                            ),
+                            ElevatedButton(
+                              onPressed: () {
+                                Navigator.pop(context, 'end');
+                              },
+                              child: const Text('Select End Date'),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ).then((selectedDate) {
+                    if (selectedDate == 'start') {
+                      selectStartDate(context);
+                    } else if (selectedDate == 'end') {
+                      selectEndDate(context);
+                    }
+                  }),
+                  child: const Text('Select Custom Dates'),
+                ),
+                const SizedBox(height: 16, width: 16),
+              ],
+            ),
+            const SizedBox(
+              height: 16,
+            ),
+            Row(
+              children: [
+                const SizedBox(width: 32),
+                Text(
+                  'Selected Dates: ${displayDateTime(startDate)} - ${displayDateTime(endDate)}',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(width: 32),
+              ],
             ),
             const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => selectEndDate(context),
-              child: const Text('Select End Date'),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Start Date: ${formatDateTime(startDate)}',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+            Center(
+              child: ElevatedButton(
+                onPressed: makePostRequest,
+                child: const Text('Get Data'),
               ),
-            ),
-            Text(
-              'End Date: ${formatDateTime(endDate)}',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: makePostRequest,
-              child: const Text('Submit'),
             ),
           ],
         ),
@@ -188,9 +305,7 @@ class _DashboardPageState extends State<DashboardPage> {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => const HomePage(),
-                ),
+                MaterialPageRoute(builder: (context) => const HomePage()),
               );
             },
           ),
@@ -200,9 +315,7 @@ class _DashboardPageState extends State<DashboardPage> {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => const DashboardPage(),
-                ),
+                MaterialPageRoute(builder: (context) => const DashboardPage()),
               );
             },
           ),
@@ -211,3 +324,5 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 }
+
+enum DateRange { lastWeek, last2Weeks, lastMonth, last3Months }
