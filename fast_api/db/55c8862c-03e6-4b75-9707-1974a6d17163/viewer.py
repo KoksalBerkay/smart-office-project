@@ -1,9 +1,9 @@
-import pyarrow.parquet as pq
+import pandas as pd
 
 # Parquet dosyasını oku
-table = pq.read_table('light.parquet')
+table = pd.read_parquet('light.parquet')
 
-print(table.to_pandas())
+print(table)
 
-columns = table.schema.names
+columns = table.columns
 print(columns)

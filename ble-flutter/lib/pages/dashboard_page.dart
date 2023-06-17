@@ -5,15 +5,18 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import '../home_page.dart';
 
-const urlPrefix = 'http://192.168.1.97:8000';
+// const urlPrefix = 'https://192.168.1.97:8000';
+const urlPrefix = 'http://192.168.1.12:8000';
 
-late String uuid;
+String? uuid;
+String dataType = '';
+String displayDataType = '';
 bool isSuccess = false;
 
-// Get the uuid from the shared preferences
-Future<void> getUuid() async {
+Future<String> getUuid() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  uuid = prefs.getString('UUID')!;
+  print('UUID: ${prefs.getString('UUID')}');
+  return prefs.getString('UUID') ?? '';
 }
 
 class DashboardPage extends StatefulWidget {
@@ -31,7 +34,11 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   void initState() {
     super.initState();
-    getUuid();
+    getUuid().then((value) {
+      setState(() {
+        uuid = value;
+      });
+    });
   }
 
   Future<void> selectStartDate(BuildContext context) async {
@@ -44,8 +51,7 @@ class _DashboardPageState extends State<DashboardPage> {
     if (selectedDate != null) {
       setState(() {
         startDate = selectedDate;
-        selectedRange =
-            null; // Reset the selected range when a specific start date is chosen
+        selectedRange = null;
       });
     }
   }
@@ -60,8 +66,7 @@ class _DashboardPageState extends State<DashboardPage> {
     if (selectedDate != null) {
       setState(() {
         endDate = selectedDate;
-        selectedRange =
-            null; // Reset the selected range when a specific end date is chosen
+        selectedRange = null;
       });
     }
   }
@@ -101,28 +106,36 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Future<void> makePostRequest() async {
-    final headers = {
-      'accept': 'application/json',
-      'Content-Type': 'application/json',
-    };
-    print('FOUND UUID: $uuid');
-    final data = {
-      'uuid': uuid,
-      'data_type': 'temp',
-      'start_timestamp': startDate.millisecondsSinceEpoch,
-      'stop_timestamp': endDate.millisecondsSinceEpoch,
-    };
-    print('DATA: $data');
+    if (uuid != null) {
+      // Perform a null check before using uuid
+      final headers = {
+        'accept': 'application/json',
+        'Content-Type': 'application/json',
+      };
 
-    final url = Uri.parse('http://192.168.1.97:8000/get_data/');
+      final data = {
+        'uuid': uuid!,
+        'data_type': dataType,
+        'start_timestamp': startDate.millisecondsSinceEpoch,
+        'stop_timestamp': endDate.millisecondsSinceEpoch,
+      };
 
-    final res = await http.post(url, headers: headers, body: jsonEncode(data));
-    final status = res.statusCode;
-    if (status == 200) {
-      isSuccess = true;
+      print("DATA: $data");
+
+      final url = Uri.parse('$urlPrefix/get_data/');
+
+      final res =
+          await http.post(url, headers: headers, body: jsonEncode(data));
+      final status = res.statusCode;
+      if (status == 200) {
+        print("Status: $status");
+        isSuccess = true;
+      }
+      print("BODY: ${res.body}");
+      if (status != 200) {
+        throw Exception('http.post error: statusCode=$status');
+      }
     }
-    print("BODY: ${res.body}");
-    if (status != 200) throw Exception('http.post error: statusCode= $status');
   }
 
   @override
@@ -148,132 +161,215 @@ class _DashboardPageState extends State<DashboardPage> {
         ),
       ),
       drawer: _buildDrawer(context),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Center(
-              child: Text(
-                'Dashboard',
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Center(
+                child: Text(
+                  'Dashboard',
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                const SizedBox(height: 16, width: 16),
-                ElevatedButton(
-                  onPressed: () {
-                    showDialog(
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  const SizedBox(
+                    height: 16,
+                    width: 16,
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: const Text('Select Range'),
+                            content: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(context, DateRange.lastWeek);
+                                  },
+                                  child: const Text('Last Week'),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(
+                                        context, DateRange.last2Weeks);
+                                  },
+                                  child: const Text('Last 2 Weeks'),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(context, DateRange.lastMonth);
+                                  },
+                                  child: const Text('Last Month'),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(
+                                        context, DateRange.last3Months);
+                                  },
+                                  child: const Text('Last 3 Months'),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ).then((selectedRange) {
+                        if (selectedRange != null) {
+                          updateDateRange(selectedRange);
+                        }
+                      });
+                    },
+                    child: const Text('Select Date Range'),
+                  ),
+                  const SizedBox(height: 16, width: 32),
+                  ElevatedButton(
+                    onPressed: () => showDialog(
                       context: context,
                       builder: (BuildContext context) {
                         return AlertDialog(
-                          title: const Text('Select Range'),
+                          title: const Text('Select Custom Date'),
                           content: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              ElevatedButton(
+                              TextButton(
                                 onPressed: () {
-                                  Navigator.pop(context, DateRange.lastWeek);
+                                  Navigator.pop(context, 'start');
                                 },
-                                child: const Text('Last Week'),
+                                child: const Text('Select Start Date'),
                               ),
-                              ElevatedButton(
+                              TextButton(
                                 onPressed: () {
-                                  Navigator.pop(context, DateRange.last2Weeks);
+                                  Navigator.pop(context, 'end');
                                 },
-                                child: const Text('Last 2 Weeks'),
-                              ),
-                              ElevatedButton(
-                                onPressed: () {
-                                  Navigator.pop(context, DateRange.lastMonth);
-                                },
-                                child: const Text('Last Month'),
-                              ),
-                              ElevatedButton(
-                                onPressed: () {
-                                  Navigator.pop(context, DateRange.last3Months);
-                                },
-                                child: const Text('Last 3 Months'),
+                                child: const Text('Select End Date'),
                               ),
                             ],
                           ),
                         );
                       },
-                    ).then((selectedRange) {
-                      if (selectedRange != null) {
-                        updateDateRange(selectedRange);
+                    ).then((selectedDate) {
+                      if (selectedDate == 'start') {
+                        selectStartDate(context);
+                      } else if (selectedDate == 'end') {
+                        selectEndDate(context);
                       }
-                    });
-                  },
-                  child: const Text('Select Date Range'),
-                ),
-                const SizedBox(height: 16, width: 32),
-                ElevatedButton(
-                  onPressed: () => showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: const Text('Select Custom Date'),
-                        content: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            ElevatedButton(
-                              onPressed: () {
-                                Navigator.pop(context, 'start');
-                              },
-                              child: const Text('Select Start Date'),
-                            ),
-                            ElevatedButton(
-                              onPressed: () {
-                                Navigator.pop(context, 'end');
-                              },
-                              child: const Text('Select End Date'),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ).then((selectedDate) {
-                    if (selectedDate == 'start') {
-                      selectStartDate(context);
-                    } else if (selectedDate == 'end') {
-                      selectEndDate(context);
-                    }
-                  }),
-                  child: const Text('Select Custom Dates'),
-                ),
-                const SizedBox(height: 16, width: 16),
-              ],
-            ),
-            const SizedBox(
-              height: 16,
-            ),
-            Row(
-              children: [
-                const SizedBox(width: 32),
-                Text(
-                  'Selected Dates: ${displayDateTime(startDate)} - ${displayDateTime(endDate)}',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                    }),
+                    child: const Text('Select Custom Dates'),
                   ),
-                ),
-                const SizedBox(width: 32),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Center(
-              child: ElevatedButton(
-                onPressed: makePostRequest,
-                child: const Text('Get Data'),
+                  const SizedBox(height: 16, width: 16),
+                ],
               ),
-            ),
-          ],
+              const SizedBox(
+                height: 16,
+              ),
+
+              // choose data type
+              Row(
+                children: [
+                  const SizedBox(width: 128),
+                  ElevatedButton(
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: const Text('Select Data Type'),
+                            content: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(context, 'light');
+                                  },
+                                  child: const Text('Light'),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(context, 'temperature');
+                                  },
+                                  child: const Text('Temperature'),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(context, 'motion');
+                                  },
+                                  child: const Text('Motion'),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(context, 'humidity');
+                                  },
+                                  child: const Text('Humidity'),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ).then((selectedDataType) {
+                        if (selectedDataType != null) {
+                          setState(() {
+                            if (selectedDataType == "temperature") {
+                              displayDataType = "temperature";
+                              dataType = "temp";
+                            } else {
+                              displayDataType = selectedDataType;
+                              dataType = selectedDataType;
+                            }
+                          });
+                        }
+                      });
+                    },
+                    child: const Text('Select Data Type'),
+                  ),
+                  const SizedBox(width: 32),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  const SizedBox(width: 32, height: 16),
+                  Text(
+                    'Selected Data Type: $displayDataType',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(width: 32),
+                ],
+              ),
+              Row(
+                children: [
+                  const SizedBox(width: 32),
+                  Text(
+                    'Selected Dates: ${displayDateTime(startDate)} - ${displayDateTime(endDate)}',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(width: 32),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Center(
+                child: ElevatedButton(
+                  onPressed: makePostRequest,
+                  child: const Text('Get Data'),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
