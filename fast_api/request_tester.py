@@ -2,7 +2,7 @@ import requests
 
 if __name__ == '__main__':
 
-    UUID = '55c8862c-03e6-4b75-9707-1974a6d17163'
+    UUID = '1c4d9d56-409f-4432-87ca-4ecf4b899210xd'
     
-    r = requests.post(url='http://127.0.0.1:8000/get_data/', json={'uuid': UUID, 'data_type': 'light', 'start_timestamp': 1686298620788, 'stop_timestamp': 1686298621282})
+    r = requests.post(url='http://192.168.1.97:8000/get_data/', json={'uuid': UUID, 'data_type': 'light'})
     print(r.text, r.status_code)
