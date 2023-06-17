@@ -4,12 +4,12 @@ import pandas as pd
 from typing import Optional
 from fastapi import FastAPI
 from pydantic import BaseModel
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, JSONResponse
 from colorama import init
 
 init()
 
-os.system('cls & title Smartoffice API')
+os.system('clear & xdotool getactivewindow set_window --name Smartoffice\ API')
 
 
 def create_exception(error_name: str, error_description: str) -> dict:
@@ -33,29 +33,29 @@ def redirect_to_docs():
 
 
 @app.post('/get_data/')
-async def get_data(request_payload: RequestPayload) -> dict:
+async def get_data(request_payload: RequestPayload) -> JSONResponse:
     _request_payload = dict(request_payload)
-    _uuid_list = os.listdir('db')
+    _uuid_list = os.listdir('/home/ikl/Desktop/db_and_api/database/db')
 
     _start_timestamp = _request_payload['start_timestamp']
     _stop_timestamp = _request_payload['stop_timestamp']
 
-    print(_start_timestamp, _stop_timestamp)
-
+    # print(_start_timestamp, _stop_timestamp)
+        
     if not (_request_payload['uuid'] in _uuid_list):
-        return create_exception('BAD_UUID', 'Please provide a UUID value that is in use.')
+        return JSONResponse(content=create_exception('BAD_UUID', 'Please provide a UUID value that is in use.'), status_code=400)
 
     if not (_request_payload['data_type'] in ('light', 'temp', 'humidity', 'motion')):
-        return create_exception('BAD_DATA_TYPE', 'Please provide a valid data type.')
+        return JSONResponse(content=create_exception('BAD_DATA_TYPE', 'Please provide a valid data type.'), status_code=400)
 
     if _start_timestamp and len(str(_start_timestamp)) != 13:
-        return create_exception('BAD_START_TIMESTAMP', 'Please provide start_timestamp value in milliseconds.')
+        return JSONResponse(content=create_exception('BAD_START_TIMESTAMP', 'Please provide start_timestamp value in milliseconds.'), status_code=400)
 
     if _stop_timestamp and len(str(_stop_timestamp)) != 13:
-        return create_exception('BAD_STOP_TIMESTAMP', 'Please provide stop_timestamp value in milliseconds.')
+        return JSONResponse(content=create_exception('BAD_STOP_TIMESTAMP', 'Please provide stop_timestamp value in milliseconds.'), status_code=400)
 
     # table = pq.read_table(f"db/{_request_payload['uuid']}/{_request_payload['data_type']}.parquet")
-    data_frame = pd.read_parquet(f"db/{_request_payload['uuid']}/{_request_payload['data_type']}.parquet")
+    data_frame = pd.read_parquet(f"/home/ikl/Desktop/db_and_api/database/db/{_request_payload['uuid']}/{_request_payload['data_type']}.parquet")
 
     # print(data_frame.columns)
 
@@ -81,8 +81,9 @@ async def get_data(request_payload: RequestPayload) -> dict:
     
     # print(result_dict)
 
-    return result_dict
+    return JSONResponse(content=result_dict, status_code=200)
+
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, port=8000)
+    uvicorn.run(app, host='192.168.1.97', port=8000)
