@@ -178,11 +178,8 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
               const SizedBox(height: 16),
               Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const SizedBox(
-                    height: 16,
-                    width: 16,
-                  ),
                   ElevatedButton(
                     onPressed: () {
                       showDialog(
@@ -231,7 +228,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     },
                     child: const Text('Select Date Range'),
                   ),
-                  const SizedBox(height: 16, width: 32),
+                  const SizedBox(width: 16),
                   ElevatedButton(
                     onPressed: () => showDialog(
                       context: context,
@@ -266,17 +263,15 @@ class _DashboardPageState extends State<DashboardPage> {
                     }),
                     child: const Text('Select Custom Dates'),
                   ),
-                  const SizedBox(height: 16, width: 16),
                 ],
               ),
               const SizedBox(
                 height: 16,
               ),
-
               // choose data type
               Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const SizedBox(width: 128),
                   ElevatedButton(
                     onPressed: () {
                       showDialog(
@@ -331,13 +326,13 @@ class _DashboardPageState extends State<DashboardPage> {
                     },
                     child: const Text('Select Data Type'),
                   ),
-                  const SizedBox(width: 32),
                 ],
               ),
               const SizedBox(height: 16),
               Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const SizedBox(width: 32, height: 16),
+                  const SizedBox(width: 32),
                   Text(
                     'Selected Data Type: $displayDataType',
                     style: const TextStyle(
@@ -349,6 +344,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 ],
               ),
               Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const SizedBox(width: 32),
                   Text(
