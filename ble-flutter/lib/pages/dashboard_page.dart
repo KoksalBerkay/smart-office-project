@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import '../home_page.dart';
+import 'visualization_page.dart';
 
 // const urlPrefix = 'https://192.168.1.97:8000';
 const urlPrefix = 'http://192.168.1.12:8000';
@@ -11,6 +12,7 @@ const urlPrefix = 'http://192.168.1.12:8000';
 String? uuid;
 String dataType = '';
 String displayDataType = '';
+String visualData = '';
 bool isSuccess = false;
 
 Future<String> getUuid() async {
@@ -105,6 +107,38 @@ class _DashboardPageState extends State<DashboardPage> {
     });
   }
 
+  void processAndVisualizeData(Map<String, dynamic> data) {
+    StringBuffer buffer = StringBuffer();
+
+    data.forEach((key, value) {
+      DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(int.parse(key));
+
+      String timestamp = DateFormat('yyyy.MM.dd')
+          .format(dateTime); // Format the timestamp as yyyy.MM.dd
+      String entry = '$timestamp: ';
+
+      List<String> values = List<String>.from(value);
+      String dataValue = values[0];
+      String thresholdValue = values[1];
+      String state = values[2] == '0' ? 'off' : 'on';
+
+      entry += 'Data: $dataValue, Threshold: $thresholdValue, State: $state\n';
+
+      buffer.write(entry);
+    });
+
+    visualData = buffer.toString();
+    print(visualData);
+
+    // navigate to the visualization page
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const VisualizationPage(),
+      ),
+    );
+  }
+
   Future<void> makePostRequest() async {
     if (uuid != null) {
       // Perform a null check before using uuid
@@ -120,18 +154,22 @@ class _DashboardPageState extends State<DashboardPage> {
         'stop_timestamp': endDate.millisecondsSinceEpoch,
       };
 
-      print("DATA: $data");
+      print("SEND DATA: $data");
 
       final url = Uri.parse('$urlPrefix/get_data/');
 
       final res =
           await http.post(url, headers: headers, body: jsonEncode(data));
       final status = res.statusCode;
+      print("RESPONSE BODY: ${res.body}");
       if (status == 200) {
-        print("Status: $status");
         isSuccess = true;
+        Map<String, dynamic> responseData =
+            jsonDecode(res.body); // Parse the response data as a Map
+        processAndVisualizeData(
+            responseData); // Process and visualize the received data
       }
-      print("BODY: ${res.body}");
+      print("Request Status: $status");
       if (status != 200) {
         throw Exception('http.post error: statusCode=$status');
       }
@@ -346,7 +384,6 @@ class _DashboardPageState extends State<DashboardPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const SizedBox(width: 32),
                   Text(
                     'Selected Dates: ${displayDateTime(startDate)} - ${displayDateTime(endDate)}',
                     style: const TextStyle(
@@ -354,7 +391,6 @@ class _DashboardPageState extends State<DashboardPage> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(width: 32),
                 ],
               ),
               const SizedBox(height: 16),
