@@ -219,6 +219,10 @@ class _DashboardPageState extends State<DashboardPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   ElevatedButton(
+                    style: ButtonStyle(
+                      backgroundColor:
+                          MaterialStateProperty.all<Color>(Colors.indigo),
+                    ),
                     onPressed: () {
                       showDialog(
                         context: context,
@@ -268,6 +272,10 @@ class _DashboardPageState extends State<DashboardPage> {
                   ),
                   const SizedBox(width: 16),
                   ElevatedButton(
+                    style: ButtonStyle(
+                      backgroundColor:
+                          MaterialStateProperty.all<Color>(Colors.indigo),
+                    ),
                     onPressed: () => showDialog(
                       context: context,
                       builder: (BuildContext context) {
@@ -311,6 +319,10 @@ class _DashboardPageState extends State<DashboardPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   ElevatedButton(
+                    style: ButtonStyle(
+                      backgroundColor:
+                          MaterialStateProperty.all<Color>(Colors.indigo),
+                    ),
                     onPressed: () {
                       showDialog(
                         context: context,
@@ -396,6 +408,10 @@ class _DashboardPageState extends State<DashboardPage> {
               const SizedBox(height: 16),
               Center(
                 child: ElevatedButton(
+                  style: ButtonStyle(
+                    backgroundColor:
+                        MaterialStateProperty.all<Color>(Colors.indigo),
+                  ),
                   onPressed: makePostRequest,
                   child: const Text('Get Data'),
                 ),
