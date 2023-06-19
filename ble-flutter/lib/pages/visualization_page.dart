@@ -1,67 +1,52 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'dashboard_page.dart';
 
-void processData(String visualData) {
-  // Split the visualData string by line breaks
-  List<String> lines = visualData.split('\n');
+void processAndVisualizeData(Map<String, dynamic> rdata) {
+  StringBuffer buffer = StringBuffer();
 
-  // Iterate through each line
-  for (String line in lines) {
-    // Remove leading and trailing whitespace from the line
-    line = line.trim();
+  double? data;
+  double? threshold;
+  String state = '';
 
-    // Skip empty lines
-    if (line.isEmpty) {
-      continue;
+  rdata.forEach((key, value) {
+    DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(int.parse(key));
+
+    String timestamp = DateFormat('yyyy.MM.dd / hh:mm')
+        .format(dateTime); // Format the timestamp as yyyy.MM.dd
+    String entry = '$timestamp: ';
+
+    List<String> values = List<String>.from(value);
+
+    if (dataType == "light") {
+      double dataValue = double.parse(values[0]);
+      data = double.parse((dataValue / 40).toStringAsFixed(2));
+
+      double thresholdValue = double.parse(values[1]);
+      threshold = double.parse((thresholdValue / 40).toStringAsFixed(2));
+    } else if (dataType == "motion") {
+      double dataValue = double.parse(values[0]);
+      data = double.parse((dataValue / 60).toStringAsFixed(2));
+
+      double thresholdValue = double.parse(values[1]);
+      threshold = double.parse((thresholdValue / 60).toStringAsFixed(2));
+    } else {
+      double dataValue = double.parse(values[0]);
+      data = double.parse(dataValue.toStringAsFixed(2));
+
+      double thresholdValue = double.parse(values[1]);
+      threshold = double.parse(thresholdValue.toStringAsFixed(2));
     }
 
-    // Split the line by commas
-    List<String> values = line.split(',');
+    state = values[2] == '0' ? 'off' : 'on';
 
-    // Extract the individual values
-    double? data;
-    double? threshold;
-    String state = '';
+    entry += '\nData: $data, Threshold: $threshold, State: $state\n\n';
 
-    for (String value in values) {
-      // Remove leading and trailing whitespace from each value
-      value = value.trim();
+    buffer.write(entry);
+  });
 
-      // Extract the data value
-      if (value.startsWith('Data:')) {
-        data = double.tryParse(value.split(':')[1]);
-      }
-      // Extract the threshold value
-      else if (value.startsWith('Threshold:')) {
-        threshold = double.tryParse(value.split(':')[1]);
-      }
-      // Extract the state value
-      else if (value.startsWith('State:')) {
-        state = value.split(':')[1].trim();
-      }
-    }
-
-    // Perform your desired control statements with the extracted values
-    if (data != null && threshold != null) {
-      // CONTROL STATEMENT
-      if (dataType == "light") {
-        data = double.parse((data / 40).toStringAsFixed(2));
-        threshold = double.parse((threshold / 40).toStringAsFixed(2));
-        print("Translated Data: $data, Threshold: $threshold, State: $state");
-      }
-      else if (dataType == "temp") {
-        print("Translated Data: $data, Threshold: $threshold, State: $state");
-      }
-      else if (dataType == "motion") {
-        data = double.parse((data / 60).toStringAsFixed(2));
-        threshold = double.parse((threshold / 60).toStringAsFixed(2));
-        print("Translated Data: $data, Threshold: $threshold, State: $state");
-      }
-      else if (dataType == "humidity") {
-        print("Translated Data: $data, Threshold: $threshold, State: $state");
-      }
-    }
-  }
+  visualData = buffer.toString();
+  print(visualData);
 }
 
 class VisualizationPage extends StatefulWidget {
@@ -72,10 +57,10 @@ class VisualizationPage extends StatefulWidget {
 }
 
 class _VisualizationPageState extends State<VisualizationPage> {
-
+  @override
   void initState() {
     super.initState();
-    processData(visualData);
+    processAndVisualizeData(responseData);
   }
 
   @override
@@ -106,7 +91,9 @@ class _VisualizationPageState extends State<VisualizationPage> {
                 ),
                 // Add more widgets here
                 const SizedBox(height: 32),
-                Center(child: Text("${dataType.toUpperCase()} DATA", style: const TextStyle(fontSize: 32))),
+                Center(
+                    child: Text("${dataType.toUpperCase()} DATA",
+                        style: const TextStyle(fontSize: 32))),
                 const SizedBox(height: 32),
                 Text(visualData),
               ],

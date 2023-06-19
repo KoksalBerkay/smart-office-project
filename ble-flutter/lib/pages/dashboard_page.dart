@@ -7,13 +7,14 @@ import '../home_page.dart';
 import 'visualization_page.dart';
 
 // const urlPrefix = 'https://192.168.1.97:8000';
-const urlPrefix = 'http://192.168.1.97:8000';
+const urlPrefix = 'http://192.168.1.12:8000';
 
 String? uuid;
 String dataType = '';
 String displayDataType = '';
 String visualData = '';
 bool isSuccess = false;
+Map<String, dynamic> responseData = {};
 
 Future<String> getUuid() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -107,30 +108,7 @@ class _DashboardPageState extends State<DashboardPage> {
     });
   }
 
-  void processAndVisualizeData(Map<String, dynamic> data) {
-    StringBuffer buffer = StringBuffer();
-
-    data.forEach((key, value) {
-      DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(int.parse(key));
-
-      String timestamp = DateFormat('yyyy.MM.dd / hh:mm')
-          .format(dateTime); // Format the timestamp as yyyy.MM.dd
-      String entry = '$timestamp: ';
-
-      List<String> values = List<String>.from(value);
-      String dataValue = values[0];
-      String thresholdValue = values[1];
-      String state = values[2] == '0' ? 'off' : 'on';
-
-      entry += '\nData: $dataValue, Threshold: $thresholdValue, State: $state\n\n';
-
-      buffer.write(entry);
-    });
-
-    visualData = buffer.toString();
-    print(visualData);
-
-    // navigate to the visualization page
+  void navToVisualizationPage() {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -164,10 +142,8 @@ class _DashboardPageState extends State<DashboardPage> {
       print("RESPONSE BODY: ${res.body}");
       if (status == 200) {
         isSuccess = true;
-        Map<String, dynamic> responseData =
-            jsonDecode(res.body); // Parse the response data as a Map
-        processAndVisualizeData(
-            responseData); // Process and visualize the received data
+        responseData = jsonDecode(res.body); // Parse the response data as a Map
+        navToVisualizationPage();
       }
       print("Request Status: $status");
       if (status != 200) {
