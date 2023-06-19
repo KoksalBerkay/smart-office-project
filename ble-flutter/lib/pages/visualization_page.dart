@@ -5,8 +5,8 @@ import 'dashboard_page.dart';
 void processAndVisualizeData(Map<String, dynamic> rdata) {
   StringBuffer buffer = StringBuffer();
 
-  String data;
-  String threshold;
+  String data = '';
+  String threshold = '';
   String state = '';
 
   rdata.forEach((key, value) {
@@ -24,21 +24,28 @@ void processAndVisualizeData(Map<String, dynamic> rdata) {
 
       double thresholdValue = double.parse(values[1]);
       threshold = "%${(thresholdValue / 40).toStringAsFixed(2)}";
+
+      state = values[2] == '0' ? 'OFF' : 'ON';
     } else if (dataType == "motion") {
       double dataValue = double.parse(values[0]);
       data = "${(dataValue / 60).toStringAsFixed(2)} min. ";
 
       double thresholdValue = double.parse(values[1]);
       threshold = "${(thresholdValue / 60).toStringAsFixed(2)} min. ";
-    } else {
+
+      state = values[2] == '0' ? 'OFF' : 'ON';
+    } else if (dataType == "temp") {
       double dataValue = double.parse(values[0]);
-      data = dataValue.toStringAsFixed(2);
+      data = "${dataValue.toStringAsFixed(2)}\u00B0";
 
       double thresholdValue = double.parse(values[1]);
-      threshold = thresholdValue.toStringAsFixed(2);
-    }
+      threshold = "${thresholdValue.toStringAsFixed(2)}\u00B0";
 
-    state = values[2] == '0' ? 'OFF' : 'ON';
+      state = values[2] == '0' ? 'OFF' : 'ON';
+    } else if (dataType == "humidity") {
+      double dataValue = double.parse(values[0]);
+      data = "${dataValue.toStringAsFixed(2)} gr/m³";
+    }
 
     entry += '\nData: $data, Threshold: $threshold, State: $state\n\n';
 
