@@ -5,8 +5,8 @@ import 'dashboard_page.dart';
 void processAndVisualizeData(Map<String, dynamic> rdata) {
   StringBuffer buffer = StringBuffer();
 
-  double? data;
-  double? threshold;
+  String data;
+  String threshold;
   String state = '';
 
   rdata.forEach((key, value) {
@@ -20,25 +20,25 @@ void processAndVisualizeData(Map<String, dynamic> rdata) {
 
     if (dataType == "light") {
       double dataValue = double.parse(values[0]);
-      data = double.parse((dataValue / 40).toStringAsFixed(2));
+      data = "%${(dataValue / 40).toStringAsFixed(2)}";
 
       double thresholdValue = double.parse(values[1]);
-      threshold = double.parse((thresholdValue / 40).toStringAsFixed(2));
+      threshold = "%${(thresholdValue / 40).toStringAsFixed(2)}";
     } else if (dataType == "motion") {
       double dataValue = double.parse(values[0]);
-      data = double.parse((dataValue / 60).toStringAsFixed(2));
+      data = "${(dataValue / 60).toStringAsFixed(2)} min. ";
 
       double thresholdValue = double.parse(values[1]);
-      threshold = double.parse((thresholdValue / 60).toStringAsFixed(2));
+      threshold = "${(thresholdValue / 60).toStringAsFixed(2)} min. ";
     } else {
       double dataValue = double.parse(values[0]);
-      data = double.parse(dataValue.toStringAsFixed(2));
+      data = dataValue.toStringAsFixed(2);
 
       double thresholdValue = double.parse(values[1]);
-      threshold = double.parse(thresholdValue.toStringAsFixed(2));
+      threshold = thresholdValue.toStringAsFixed(2);
     }
 
-    state = values[2] == '0' ? 'off' : 'on';
+    state = values[2] == '0' ? 'OFF' : 'ON';
 
     entry += '\nData: $data, Threshold: $threshold, State: $state\n\n';
 
