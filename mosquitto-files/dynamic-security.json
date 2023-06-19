@@ -1,0 +1,100 @@
+{
+	"defaultACLAccess":	{
+		"publishClientSend":	false,
+		"publishClientReceive":	false,
+		"subscribe":	false,
+		"unsubscribe":	false
+	},
+	"clients":	[{
+			"username":	"abc",
+			"roles":	[{
+					"rolename":	"admin",
+					"priority":	0
+				}, {
+					"rolename":	"clientRole",
+					"priority":	0
+				}]
+		}, {
+			"username":	"abcd",
+			"roles":	[{
+					"rolename":	"clientRole",
+					"priority":	0
+				}],
+			"password":	"3T/gXtpKnA2Q67ydEsSrDKzDbPYVb5TFW0YRKCGWDWMyzEY2BDgwHPJ68e2dngsi3pKUJzTvYrztCmPIL6O0uA==",
+			"salt":	"MCuPBYuZG09mjjmv",
+			"iterations":	101
+		}, {
+			"username":	"admin",
+			"textname":	"Dynsec admin user",
+			"roles":	[{
+					"rolename":	"admin"
+				}],
+			"password":	"r7Z1wFX4lpgdvuWBZE+rT50AMwlA7lj2ej2pkzd5dLhBFenB6Dv3mPYx4Io+oHepheJRAOrpjC0M5I2uOq1/Kg==",
+			"salt":	"yMt19pL58f2G9J0O",
+			"iterations":	101
+		}],
+	"groups":	[],
+	"roles":	[{
+			"rolename":	"admin",
+			"acls":	[{
+					"acltype":	"publishClientSend",
+					"topic":	"$CONTROL/dynamic-security/#",
+					"priority":	0,
+					"allow":	true
+				}, {
+					"acltype":	"publishClientReceive",
+					"topic":	"$CONTROL/dynamic-security/#",
+					"priority":	0,
+					"allow":	true
+				}, {
+					"acltype":	"publishClientReceive",
+					"topic":	"$SYS/#",
+					"priority":	0,
+					"allow":	true
+				}, {
+					"acltype":	"publishClientReceive",
+					"topic":	"#",
+					"priority":	0,
+					"allow":	true
+				}, {
+					"acltype":	"subscribePattern",
+					"topic":	"$CONTROL/dynamic-security/#",
+					"priority":	0,
+					"allow":	true
+				}, {
+					"acltype":	"subscribePattern",
+					"topic":	"$SYS/#",
+					"priority":	0,
+					"allow":	true
+				}, {
+					"acltype":	"subscribePattern",
+					"topic":	"#",
+					"priority":	0,
+					"allow":	true
+				}, {
+					"acltype":	"unsubscribePattern",
+					"topic":	"#",
+					"priority":	0,
+					"allow":	true
+				}]
+		}, {
+			"rolename":	"clientRole",
+			"acls":	[{
+					"acltype":	"publishClientSend",
+					"topic":	"sensor-data/#",
+					"priority":	0,
+					"allow":	true
+				}, {
+					"acltype":	"publishClientReceive",
+					"topic":	"sensor-data/#",
+					"priority":	0,
+					"allow":	true
+				}, {
+					"acltype":	"subscribePattern",
+					"topic":	"sensor-data/#",
+					"priority":	0,
+					"allow":	true
+				}
+			]
+		}]
+}
