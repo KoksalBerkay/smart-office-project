@@ -3,8 +3,8 @@
 #include "pair.h"
 #define PIR_SENSOR 15
 #define DHT_PIN 5
-#define LDR_PIN 34
-#define RELAY_PIN 18
+#define LDR_PIN 18
+#define RELAY_PIN 34
 #define LIGHT_PIN 19
 #define SERVER_IP "192.168.1.97"
 #define SERVER_PORT 1883
