@@ -46,7 +46,6 @@ void processAndVisualizeData(Map<String, dynamic> rdata) {
   });
 
   visualData = buffer.toString();
-  print(visualData);
 }
 
 class VisualizationPage extends StatefulWidget {
