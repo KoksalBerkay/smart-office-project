@@ -7,7 +7,7 @@ import '../home_page.dart';
 import 'visualization_page.dart';
 
 // const urlPrefix = 'https://192.168.1.97:8000';
-const urlPrefix = 'http://192.168.1.12:8000';
+const urlPrefix = 'http://192.168.1.97:8000';
 
 String? uuid;
 String dataType = '';
@@ -113,7 +113,7 @@ class _DashboardPageState extends State<DashboardPage> {
     data.forEach((key, value) {
       DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(int.parse(key));
 
-      String timestamp = DateFormat('yyyy.MM.dd')
+      String timestamp = DateFormat('yyyy.MM.dd / hh:mm')
           .format(dateTime); // Format the timestamp as yyyy.MM.dd
       String entry = '$timestamp: ';
 
@@ -122,7 +122,7 @@ class _DashboardPageState extends State<DashboardPage> {
       String thresholdValue = values[1];
       String state = values[2] == '0' ? 'off' : 'on';
 
-      entry += 'Data: $dataValue, Threshold: $thresholdValue, State: $state\n';
+      entry += '\nData: $dataValue, Threshold: $thresholdValue, State: $state\n\n';
 
       buffer.write(entry);
     });
