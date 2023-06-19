@@ -12,8 +12,7 @@ void processAndVisualizeData(Map<String, dynamic> rdata) {
   rdata.forEach((key, value) {
     DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(int.parse(key));
 
-    String timestamp = DateFormat('yyyy.MM.dd / hh:mm')
-        .format(dateTime); // Format the timestamp as yyyy.MM.dd
+    String timestamp = DateFormat('yyyy.MM.dd / hh:mm').format(dateTime);
     String entry = '$timestamp: ';
 
     List<String> values = List<String>.from(value);
@@ -26,6 +25,8 @@ void processAndVisualizeData(Map<String, dynamic> rdata) {
       threshold = "%${(thresholdValue / 40).toStringAsFixed(2)}";
 
       state = values[2] == '0' ? 'OFF' : 'ON';
+
+      entry += '\nData: $data, Threshold: $threshold, State: $state\n\n';
     } else if (dataType == "motion") {
       double dataValue = double.parse(values[0]);
       data = "${(dataValue / 60).toStringAsFixed(2)} min. ";
@@ -34,6 +35,8 @@ void processAndVisualizeData(Map<String, dynamic> rdata) {
       threshold = "${(thresholdValue / 60).toStringAsFixed(2)} min. ";
 
       state = values[2] == '0' ? 'OFF' : 'ON';
+
+      entry += '\nData: $data, Threshold: $threshold, State: $state\n\n';
     } else if (dataType == "temp") {
       double dataValue = double.parse(values[0]);
       data = "${dataValue.toStringAsFixed(2)}\u00B0";
@@ -42,12 +45,14 @@ void processAndVisualizeData(Map<String, dynamic> rdata) {
       threshold = "${thresholdValue.toStringAsFixed(2)}\u00B0";
 
       state = values[2] == '0' ? 'OFF' : 'ON';
+
+      entry += '\nData: $data, Threshold: $threshold, State: $state\n\n';
     } else if (dataType == "humidity") {
       double dataValue = double.parse(values[0]);
       data = "${dataValue.toStringAsFixed(2)} gr/m³";
-    }
 
-    entry += '\nData: $data, Threshold: $threshold, State: $state\n\n';
+      entry += '\nData: $data\n\n';
+    }
 
     buffer.write(entry);
   });
@@ -98,10 +103,10 @@ class _VisualizationPageState extends State<VisualizationPage> {
                 // Add more widgets here
                 const SizedBox(height: 32),
                 Center(
-                    child: Text("${dataType.toUpperCase()} DATA",
+                    child: Text(displayDataType.toUpperCase(),
                         style: const TextStyle(fontSize: 32))),
                 const SizedBox(height: 32),
-                Text(visualData),
+                Center(child: Text(visualData)),
               ],
             ),
           ),
