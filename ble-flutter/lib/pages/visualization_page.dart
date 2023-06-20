@@ -76,39 +76,48 @@ class _VisualizationPageState extends State<VisualizationPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.indigo.shade50,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Container(
-            margin: const EdgeInsets.only(top: 18, left: 24, right: 24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pop(context);
-                      },
-                      child: const Icon(
-                        Icons.arrow_back_ios,
-                        color: Colors.indigo,
-                      ),
-                    ),
-                  ],
-                ),
-                // Add more widgets here
-                const SizedBox(height: 32),
-                Center(
-                    child: Text(displayDataType.toUpperCase(),
-                        style: const TextStyle(fontSize: 32))),
-                const SizedBox(height: 32),
-                Center(child: Text(visualData)),
-              ],
+    return DefaultTabController(
+      length: 1,
+      child: Scaffold(
+        backgroundColor: Colors.indigo.shade50,
+        appBar: AppBar(
+          backgroundColor: Colors.indigo.shade50,
+          elevation: 0,
+          leading: GestureDetector(
+            onTap: () {
+              Navigator.pop(context);
+            },
+            child: const Icon(
+              Icons.arrow_back_ios,
+              color: Colors.indigo,
             ),
+          ),
+        ),
+        body: SafeArea(
+          child: TabBarView(
+            children: [
+              SingleChildScrollView(
+                child: Container(
+                  margin: const EdgeInsets.only(top: 18, left: 24, right: 24),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Add your widgets for the 'Data' tab here
+                      const SizedBox(height: 32),
+                      Center(
+                        child: Text(
+                          displayDataType.toUpperCase(),
+                          style: const TextStyle(fontSize: 32),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      Center(child: Text(visualData)),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
