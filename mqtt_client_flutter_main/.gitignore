@@ -1,8 +1,0 @@
-*.iml
-.dart_tool/
-/build/
-.idea/
-.flutter-plugins
-.packages
-.pub-cache/
-.pub/
