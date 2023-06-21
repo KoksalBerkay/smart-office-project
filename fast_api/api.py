@@ -9,19 +9,23 @@ from colorama import init
 
 init()
 
-os.system('clear & xdotool getactivewindow set_window --name Smartoffice\ API')
+# os.system('clear & xdotool getactivewindow set_window --name Smartoffice\ API')
 
 
 def create_exception(error_name: str, error_description: str) -> dict:
     return {'error': error_name, 'error_description': error_description}
 
 
-class RequestPayload(BaseModel):
+class GetDataPayload(BaseModel):
     uuid: str
     data_type: str
     start_timestamp: Optional[int] = 0
     stop_timestamp: Optional[int] = 0
 
+
+class RegisterPayload(BaseModel):
+    username: str
+    password: str
 
 app = FastAPI()
 
@@ -33,7 +37,7 @@ def redirect_to_docs():
 
 
 @app.post('/get_data/')
-async def get_data(request_payload: RequestPayload) -> JSONResponse:
+async def get_data(request_payload: GetDataPayload) -> JSONResponse:
     _request_payload = dict(request_payload)
     _uuid_list = os.listdir('/home/ikl/Desktop/db_and_api/database/db')
 
@@ -84,6 +88,14 @@ async def get_data(request_payload: RequestPayload) -> JSONResponse:
     return JSONResponse(content=result_dict, status_code=200)
 
 
+@app.post('/register/')
+async def register(register_payload: RegisterPayload) -> JSONResponse:
+    register_payload = dict(register_payload)
+    username, password = register_payload['username'], register_payload['password']
+
+    os.system(f'mosquitto_ctrl -u admin -P 123 dynsec createClient {username}')
+    os.system(f'mosquitto_ctrl -u admin -P1 123 dynsec setClientPassword {password}')
+
 
 if __name__ == "__main__":
-    uvicorn.run(app, host='192.168.1.97', port=8000)
+    uvicorn.run(app, port=8000)
