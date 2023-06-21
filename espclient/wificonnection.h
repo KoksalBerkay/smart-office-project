@@ -2,7 +2,6 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
 
-
 WiFiClient wifiClient;
     PubSubClient client(wifiClient);
 
@@ -14,12 +13,14 @@ class MqttHandler {
     String uuid;
     String wifiPass;
     String wifiSsid;
+    String mqttPass;
     
     
     //static void callback(char* topic, byte* payload, unsigned int length);
   public:
     PubSubClient getMqttHandler();
     void setUuid(String uuid);
+    void setMqttPass(String mqttPass);
     void setServerIP(String ipAddress);
     void setPort(uint16_t port);
     void setWifiPass(String wifiPass);
@@ -71,7 +72,6 @@ void MqttHandler::setWifiPass(String wifiPass) {
 void MqttHandler::setWifiSsid(String wifiSsid) {
   this->wifiSsid = wifiSsid;
 }
-void setWifiSsid(String wifiSsid);
 
 void MqttHandler::setupMQTT(void (*callbackfunc)(char*, byte*, unsigned int)) {
   //setupWifi(ssid.c_str() , pass.c_str());
@@ -86,6 +86,9 @@ void MqttHandler::setUuid(String uuid) {
   this->uuid = uuid;
 }
 
+void MqttHandler::setMqttPass(String mqttPass) {
+  this->wifiPass = wifiPass;
+}
 //String MqttHandler::getUuid() {
 //  return uuid;
 //}
@@ -103,14 +106,16 @@ bool MqttHandler::publishData(const char* topic, float sensorData, float thresho
   return ret;
 }
 
+//13p%*0K9mvZ#V
+
 boolean MqttHandler::reconnectTopics(char* topics[]) {
   Serial.print("Reconnect...");
-  if (client.connect("arduinoClient")) {
+  if (client.connect(uuid.c_str() ,"murat" ,"321")) {
     // Once connected, publish an announcement...
     // ... and resubscribe
     
     for (int i = 0; i < 4; i++) {
-      String topicName = String(topics[i])+ "\\" + uuid;
+      String topicName = String(topics[i]) + uuid;
       client.subscribe(topicName.c_str());
       Serial.println("Subscribed to : " + topicName);
     }
