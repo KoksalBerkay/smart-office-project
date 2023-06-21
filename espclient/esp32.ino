@@ -3,16 +3,16 @@
 #include "pair.h"
 #define PIR_SENSOR 15
 #define DHT_PIN 5
-#define LDR_PIN 18
-#define RELAY_PIN 34
+#define LDR_PIN 35
+#define RELAY_PIN 26
 #define LIGHT_PIN 19
 #define SERVER_IP "192.168.1.97"
 #define SERVER_PORT 1883
 #define ESPBUTTON 0
-#define LIGHTTOPIC "sensor-data\\light\\"
-#define MOTIONTOPIC "sensor-data\\motion\\"
-#define TEMPTOPIC "sensor-data\\temp\\" 
-#define HUMIDTOPIC "sensor-data\\humidity\\"
+#define LIGHTTOPIC "sensor-data/light/"
+#define MOTIONTOPIC "sensor-data/motion/"
+#define TEMPTOPIC "sensor-data/temp/" 
+#define HUMIDTOPIC "sensor-data/humidity/"
 
 DHT dht(DHT_PIN, DHT11);
 
@@ -21,16 +21,16 @@ String uuid;
 String mqttPass;
 int pirData;
 int lightData;
-int lightThreshold = 500;
+int lightThreshold = 1000;
 unsigned int lastReconnectAttempt = 0;
 unsigned int lastMotionTime = 0;
 unsigned int motionlessTimeThreshold = 0;
 float tempData;
-float tempThreshold = 26;
+float tempThreshold = 26; 
 float humidityData;
 
 
-char* topics[] = {"temp", "light", "motion", "humidity"};
+char* topics[] = {TEMPTOPIC, LIGHTTOPIC, MOTIONTOPIC, HUMIDTOPIC};
 
 void callback(char* topic, byte* payload, unsigned int length) {
   Serial.println("Data from MQTT recieved.");
@@ -64,6 +64,11 @@ void callback(char* topic, byte* payload, unsigned int length) {
 void loop2( void * parameter){
   while(1){
     client.loop();
+    
+    if (!digitalRead(0)) {
+      clearFlash();
+    }
+    
     delay(10);
     }
 }
@@ -82,15 +87,17 @@ void setup() {
 
 
   Serial.println("Pairing");
-  Pair(&ssid , &pass , &uuid, 0);
+  Pair(&ssid , &pass , &uuid , &mqttPass, 0);
 
   Serial.println("Pairing done");
   Serial.println("SSID : " + ssid);
   Serial.println("Pass : " + pass);
   Serial.println("UUID : " + uuid);
+  Serial.println("MQTP : " + mqttPass);
   dht.begin();
   Serial.println("setup done");
   handler.setUuid(uuid);
+  handler.setMqttPass(mqttPass);
   handler.setServerIP(SERVER_IP);
   handler.setPort(SERVER_PORT);
   handler.setWifiPass(pass);
@@ -142,7 +149,6 @@ void loop() {
   digitalWrite(LIGHT_PIN , (lightData < lightThreshold) ? 1 : 0);
 
 
-
   if (!client.connected()) {
     long now = millis();
     if (now - lastReconnectAttempt > 5000) {
@@ -155,21 +161,20 @@ void loop() {
   } else {
     // Client connected
 
+    
     handler.publishData((TEMPTOPIC + uuid).c_str(), tempData, tempThreshold, digitalRead(RELAY_PIN));
     Serial.println(tempThreshold);
     //publishData("temp", 22, 25, true);
     handler.publishData((MOTIONTOPIC + uuid).c_str() , motionlessTime / 1000 , motionlessTimeThreshold , pirData);
     handler.publishData((LIGHTTOPIC + uuid).c_str() , lightData , lightThreshold, (lightData < lightThreshold));
-    handler.publishData((HUMIDTOPIC + uuid).c_str() , humidityData , 0, 0);
-
-    delay(100);
-    if (digitalRead(ESPBUTTON) == 0) {
-      clearFlash();
+    if(!handler.publishData((HUMIDTOPIC + uuid).c_str() , humidityData , 0, 0)){
+      Serial.print("publishing failed");
     }
+
 
     
   }
 
 
-  delay(100);
+  delay(1000);
 }
