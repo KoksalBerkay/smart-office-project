@@ -1,12 +1,25 @@
 import os
 import time
+import threading
 import pandas as pd
 import paho.mqtt.client as mqtt
+
+os.system('clear & xdotool getactivewindow set_window --name Smartoffice\ Datasaver')
+
+
+class TempDatas:
+    temp, light, humidity, motion  = 1, 1, 1, 1
+    
 
 
 def calculate_spaces(strng_data: str) -> str:
     max_len = 7
     return (max_len - len(strng_data)) * ' '
+    
+
+def calculate_percent(first_number: int, last_number: int) -> float:
+    return abs(round((((last_number - first_number) / first_number) * 100), 2))
+
 
 
 def save_to_db(_file_name: str, timestamp: str, value: str, threshold: str, state: str):
@@ -36,11 +49,14 @@ def on_message(client, userdata, message):
     _topic_type = str(message.topic).split('\\')[0]  # ex: temp\5d4ad7f4-1918-4210-942f-2489709c4411
     _uuid = str(message.topic).split('\\')[1]
     _message = message.payload.decode('utf-8').split('/')
+    print(_message)
+    changed = True
     
     try:
         os.mkdir('db/' + _uuid)
     except FileExistsError:
-        pass
+        changed = False
+        
     
     try:
         #  _timestamp = message[0]  # ex: 1684060875
@@ -63,6 +79,8 @@ def on_message(client, userdata, message):
 
 if __name__ == '__main__':
     mqtt_client = mqtt.Client()
+    
+    mqtt_client.username_pw_set('admin', '13p%*0K9mvZ#V')
 
     mqtt_client.connect('localhost')
 
