@@ -5,11 +5,15 @@ import '../mqtt_client_wrapper.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 late String uuid;
+late String mqttPass;
 
 // get the uuid from the shared preferences
 Future<void> getUuid() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  uuid = prefs.getString('uuid')!;
+  uuid = prefs.getString('UUID')!;
+  mqttPass = prefs.getString('MQTTPASSWORD')!;
+  print('Got uuid: $uuid');
+  print('Got mqttPass: $mqttPass');
 }
 
 class TemperaturePage extends StatefulWidget {
@@ -29,14 +33,16 @@ class _TemperaturePageState extends State<TemperaturePage> {
   @override
   void initState() {
     super.initState();
-    mqttClientWrapper.prepareMqttClient("", "", mqttIp, 1883);
+    getUuid().then((_) {
+      mqttClientWrapper.prepareMqttClient(uuid, mqttPass, mqttIp, 1883);
 
-    // wait for the client to connect
-    Future.delayed(const Duration(seconds: 1)).then((_) {
-      // wait for to get the uuid
-      getUuid().then((_) {
+      // wait for the client to connect
+      Future.delayed(const Duration(seconds: 1)).then((_) {
+        // wait for to get the uuid
         print("subscribing...");
-        mqttClientWrapper.subscribeToTopic("temp\\$uuid")?.listen((message) {
+        mqttClientWrapper
+            .subscribeToTopic("sensor-data/temp/$uuid")
+            ?.listen((message) {
           setState(() {
             print("Message: $message");
 
@@ -174,7 +180,8 @@ class _TemperaturePageState extends State<TemperaturePage> {
                                       thresholdValue -= 0.5;
                                     }
                                     mqttClientWrapper.publishMessage(
-                                        'T$thresholdValue', 'temp\\$uuid');
+                                        'T$thresholdValue',
+                                        'sensor-data/temp/$uuid');
                                   });
                                 },
                               ),
@@ -189,7 +196,8 @@ class _TemperaturePageState extends State<TemperaturePage> {
                                       thresholdValue += 0.5;
                                     }
                                     mqttClientWrapper.publishMessage(
-                                        'T$thresholdValue', 'temp\\$uuid');
+                                        'T$thresholdValue',
+                                        'sensor-data/temp/$uuid');
                                   });
                                 },
                               ),

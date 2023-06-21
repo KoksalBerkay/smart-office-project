@@ -6,8 +6,8 @@ import 'package:intl/intl.dart';
 import '../home_page.dart';
 import 'visualization_page.dart';
 
-// const urlPrefix = 'https://192.168.1.97:8000';
-const urlPrefix = 'http://192.168.1.12:8000';
+const urlPrefix = 'http://192.168.1.97:8000';
+// const urlPrefix = 'http://192.168.1.11:8000';
 
 String? uuid;
 String dataType = '';

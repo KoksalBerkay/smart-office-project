@@ -5,11 +5,15 @@ import 'package:percent_indicator/circular_percent_indicator.dart';
 import '../home_page.dart';
 
 late String uuid;
+late String mqttPass;
 
 // get the uuid from the shared preferences
 Future<void> getUuid() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  uuid = prefs.getString('uuid')!;
+  uuid = prefs.getString('UUID')!;
+  mqttPass = prefs.getString('MQTTPASSWORD')!;
+  print('Got uuid: $uuid');
+  print('Got mqttPass: $mqttPass');
 }
 
 class MotionPage extends StatefulWidget {
@@ -29,14 +33,16 @@ class _MotionPageState extends State<MotionPage> {
   @override
   void initState() {
     super.initState();
-    mqttClientWrapper.prepareMqttClient("", "", mqttIp, 1883);
+    getUuid().then((_) {
+      mqttClientWrapper.prepareMqttClient(uuid, mqttPass, mqttIp, 1883);
 
-    // wait for the client to connect
-    Future.delayed(const Duration(seconds: 1)).then((_) {
-      // wait for to get the uuid
-      getUuid().then((_) {
+      // wait for the client to connect
+      Future.delayed(const Duration(seconds: 1)).then((_) {
+        // wait for to get the uuid
         print("subscribing...");
-        mqttClientWrapper.subscribeToTopic("motion\\$uuid")?.listen((message) {
+        mqttClientWrapper
+            .subscribeToTopic("sensor-data/motion/$uuid")
+            ?.listen((message) {
           setState(() {
             print("Message: " + message);
             List<String> messageList = message.split('/');
@@ -173,7 +179,8 @@ class _MotionPageState extends State<MotionPage> {
                                     thresholdValue -= 600.0;
                                   }
                                   mqttClientWrapper.publishMessage(
-                                      'T$thresholdValue', 'motion\\$uuid');
+                                      'T$thresholdValue',
+                                      'sensor-data/motion/$uuid');
                                 });
                               },
                             ),
@@ -188,7 +195,8 @@ class _MotionPageState extends State<MotionPage> {
                                     thresholdValue += 600.0;
                                   }
                                   mqttClientWrapper.publishMessage(
-                                      'T$thresholdValue', 'motion\\$uuid');
+                                      'T$thresholdValue',
+                                      'sensor-data/motion/$uuid');
                                 });
                               },
                             ),

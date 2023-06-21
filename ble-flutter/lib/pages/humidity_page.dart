@@ -5,11 +5,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../mqtt_client_wrapper.dart';
 
 late String uuid;
+late String mqttPass;
 
 // get the uuid from the shared preferences
 Future<void> getUuid() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  uuid = prefs.getString('uuid')!;
+  uuid = prefs.getString('UUID')!;
+  mqttPass = prefs.getString('MQTTPASSWORD')!;
+  print('Got uuid: $uuid');
+  print('Got mqttPass: $mqttPass');
 }
 
 class HumidityPage extends StatefulWidget {
@@ -27,15 +31,15 @@ class _HumidityPageState extends State<HumidityPage> {
   @override
   void initState() {
     super.initState();
-    mqttClientWrapper.prepareMqttClient("", "", mqttIp, 1883);
+    getUuid().then((_) {
+      mqttClientWrapper.prepareMqttClient(uuid, mqttPass, mqttIp, 1883);
 
-    // wait for the client to connect
-    Future.delayed(const Duration(seconds: 1)).then((_) {
-      // wait for to get the uuid
-      getUuid().then((_) {
+      // wait for the client to connect
+      Future.delayed(const Duration(seconds: 1)).then((_) {
+        // wait for to get the uuid
         print("subscribing...");
         mqttClientWrapper
-            .subscribeToTopic("humidity\\$uuid")
+            .subscribeToTopic("sensor-data/humidity/$uuid")
             ?.listen((message) {
           setState(() {
             print("Message: " + message);

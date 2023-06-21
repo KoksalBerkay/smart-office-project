@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:async';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
@@ -99,8 +98,6 @@ class MQTTClientWrapper {
 
   void _setupMqttClientWithAuth(String username, String host, int port) {
     client = MqttServerClient.withPort(host, username, port);
-    client.secure = true;
-    client.securityContext = SecurityContext.defaultContext;
     client.keepAlivePeriod = 20;
     client.onDisconnected = _onDisconnected;
     client.onConnected = _onConnected;

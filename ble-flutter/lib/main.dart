@@ -6,10 +6,14 @@ import 'home_page.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final uuidExists = await checkUuidExists();
-  if (uuidExists) {
+  final mqttPasswordExists = await checkMqttPasswordExists();
+  if (uuidExists && mqttPasswordExists) {
     runApp(const MqttApp());
   } else {
     // Gather and save UUID using Bluetooth
@@ -17,16 +21,37 @@ void main() async {
   }
 }
 
+const urlPrefix = 'http://192.168.1.97:8000';
+// const urlPrefix = 'http://192.168.1.11:8000';
+
+bool isSuccess = false;
+Map<String, dynamic> responseData = {};
+
 late String uuid;
+late String mqttPassword;
 
 Future<bool> checkUuidExists() async {
   try {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+    // prefs.setString('UUID', 'deneme-uuid'); // TESTING
     uuid = prefs.getString('UUID')!;
     print('UUID is found: $uuid');
     return uuid.isNotEmpty;
   } catch (e) {
     print('Could not find the UUID: $e');
+    return false;
+  }
+}
+
+Future<bool> checkMqttPasswordExists() async {
+  try {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    // prefs.setString('MQTTPASSWORD', 'deneme-sifre'); // TESTING
+    mqttPassword = prefs.getString('MQTTPASSWORD')!;
+    print('MQTTPASSWORD is found: $mqttPassword');
+    return mqttPassword.isNotEmpty;
+  } catch (e) {
+    print('Could not find the mqttPassword: $e');
     return false;
   }
 }
@@ -38,6 +63,18 @@ Future<void> saveUuid(String uuid) async {
     prefs.setString('UUID', uuid);
     final a = prefs.getString('UUID');
     print('Saved UUID: $a');
+  } catch (e) {
+    print('Error at saveUuid: $e');
+  }
+}
+
+Future<void> saveMqttPassword(String uuid) async {
+  print('SAVING mqttPassword...');
+  try {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString('MQTTPASSWORD', mqttPassword);
+    final b = prefs.getString('MQTTPASSWORD');
+    print('Saved MQTTPASSWORD: $b');
   } catch (e) {
     print('Error at saveUuid: $e');
   }
@@ -164,28 +201,72 @@ class _BlePageState extends State<BlePage> {
     for (var service in services) {
       if (service.uuid.toString() == "c2302aa0-0548-49ff-a10a-e421fdb311ff") {
         for (var char in service.characteristics) {
-          if (char.uuid.toString() == "4934c8ce-bce0-417c-b613-14f9f24da803") {
-            char.write(ssid.codeUnits, withoutResponse: true);
-            print("Sent the wifi ssid successfully");
-          }
-          if (char.uuid.toString() == "7dec32af-0afe-4718-9c5b-a0c120bab609") {
-            char.write(pass.codeUnits, withoutResponse: true);
-            print("Sent the wifi pass successfully");
-          }
-          if (char.uuid.toString() == "e91a0da9-9048-4b87-99a9-01a8a62b65bf") {
+          if (char.uuid.toString() == "340ab508-1009-11ee-be56-0242ac120002") {
+            await char.read().then((value) {
+              mqttPassword = String.fromCharCodes(value);
+              if (mqttPassword == "") {
+                throw Exception("mqttPassword is empty so go get it again!!!");
+              } else {
+                saveMqttPassword(mqttPassword);
+              }
+              print("The mqttPassword is: $mqttPassword");
+            });
+            Future.delayed(const Duration(milliseconds: 500));
+          } else if (char.uuid.toString() ==
+              "e91a0da9-9048-4b87-99a9-01a8a62b65bf") {
             await char.read().then((value) {
               uuid = String.fromCharCodes(value);
               if (uuid == "") {
                 throw Exception("UUID is empty so go get it again!!!");
               } else {
                 saveUuid(uuid);
-                nav();
               }
               print("The uuid is: $uuid");
+              Future.delayed(const Duration(milliseconds: 500));
             });
+          } else if (char.uuid.toString() ==
+              "4934c8ce-bce0-417c-b613-14f9f24da803") {
+            char.write(ssid.codeUnits, withoutResponse: true);
+            print("Sent the wifi ssid successfully");
+            Future.delayed(const Duration(milliseconds: 500));
+          } else if (char.uuid.toString() ==
+              "7dec32af-0afe-4718-9c5b-a0c120bab609") {
+            char.write(pass.codeUnits, withoutResponse: true);
+            print("Sent the wifi pass successfully");
+            Future.delayed(const Duration(milliseconds: 500));
           }
+          print("CHARACTERISTICS: ${char.uuid.toString()}");
         }
-        ;
+      }
+    }
+    if (uuid != "" && mqttPassword != "") {
+      final headers = {
+        'accept': 'application/json',
+        'Content-Type': 'application/json',
+      };
+
+      final data = {
+        'username': uuid,
+        'password': mqttPassword,
+      };
+
+      print("SEND DATA: $data");
+
+      final url = Uri.parse('$urlPrefix/register/');
+
+      final res =
+          await http.post(url, headers: headers, body: jsonEncode(data));
+      final status = res.statusCode;
+      print("RESPONSE BODY: ${res.body}");
+
+      if (status == 200) {
+        isSuccess = true;
+        responseData = jsonDecode(res.body); // Parse the response data as a Map
+        nav();
+      }
+      print("Request Status: $status");
+      if (status != 200) {
+        throw Exception('http.post error: statusCode=$status');
       }
     }
   }

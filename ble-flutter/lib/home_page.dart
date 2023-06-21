@@ -6,6 +6,7 @@ import 'pages/light_page.dart';
 import 'pages/dashboard_page.dart';
 
 String mqttIp = "192.168.1.97";
+// String mqttIp = "192.168.1.11";
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);

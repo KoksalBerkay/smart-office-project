@@ -5,11 +5,15 @@ import '../mqtt_client_wrapper.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 
 late String uuid;
+late String mqttPass;
 
 // get the uuid from the shared preferences
 Future<void> getUuid() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  uuid = prefs.getString('uuid')!;
+  uuid = prefs.getString('UUID')!;
+  mqttPass = prefs.getString('MQTTPASSWORD')!;
+  print('Got uuid: $uuid');
+  print('Got mqttPass: $mqttPass');
 }
 
 class LightPage extends StatefulWidget {
@@ -30,14 +34,16 @@ class _LightPageState extends State<LightPage> {
   @override
   void initState() {
     super.initState();
-    mqttClientWrapper.prepareMqttClient("", "", mqttIp, 1883);
+    getUuid().then((_) {
+      mqttClientWrapper.prepareMqttClient(uuid, mqttPass, mqttIp, 1883);
 
-    // wait for the client to connect
-    Future.delayed(const Duration(seconds: 1)).then((_) {
-      // wait for to get the uuid
-      getUuid().then((_) {
+      // wait for the client to connect
+      Future.delayed(const Duration(seconds: 1)).then((_) {
+        // wait for to get the uuid
         print("subscribing...");
-        mqttClientWrapper.subscribeToTopic("light\\$uuid")?.listen((message) {
+        mqttClientWrapper
+            .subscribeToTopic("sensor-data/light/$uuid")
+            ?.listen((message) {
           setState(() {
             print("Message: " + message);
 
@@ -108,7 +114,7 @@ class _LightPageState extends State<LightPage> {
                       radius: 160,
                       lineWidth: 14,
                       animateFromLastPercent: true,
-                      percent: thresholdValue / 4000, // THIS MIGHT NOT WORK
+                      percent: thresholdValue / 4000,
                       progressColor: Colors.indigo,
                       center: Column(
                         children: [
@@ -184,7 +190,8 @@ class _LightPageState extends State<LightPage> {
                                     thresholdValue =
                                         (_sliderValue * 40).toDouble();
                                     mqttClientWrapper.publishMessage(
-                                        'T$thresholdValue', 'light\\$uuid');
+                                        'T$thresholdValue',
+                                        'sensor-data/light/$uuid');
                                   });
                                 },
                               )
