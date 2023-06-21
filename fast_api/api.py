@@ -1,4 +1,6 @@
 import os
+import json
+import subprocess
 import uvicorn
 import pandas as pd
 from typing import Optional
@@ -9,11 +11,26 @@ from colorama import init
 
 init()
 
-# os.system('clear & xdotool getactivewindow set_window --name Smartoffice\ API')
+os.system('clear & xdotool getactivewindow set_window --name Smartoffice\ API')
 
 
 def create_exception(error_name: str, error_description: str) -> dict:
     return {'error': error_name, 'error_description': error_description}
+    
+    
+def register_user(username: str, password: str):
+
+    process = subprocess.Popen(f'mosquitto_ctrl -u admin -P 13p%*0K9mvZ#V dynsec createClient {username}', shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    process.stdin.write(f'{password}\n'.encode())
+    process.stdin.flush()
+    
+    process.stdin.write(f'{password}\n'.encode())
+    process.stdin.flush()
+    
+    subprocess.run(f'mosquitto_ctrl -u admin -P 13p%*0K9mvZ#V dynsec addClientRole {username} clientRole 0', shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    
+    process.terminate()
 
 
 class GetDataPayload(BaseModel):
@@ -93,9 +110,23 @@ async def register(register_payload: RegisterPayload) -> JSONResponse:
     register_payload = dict(register_payload)
     username, password = register_payload['username'], register_payload['password']
 
-    os.system(f'mosquitto_ctrl -u admin -P 123 dynsec createClient {username}')
-    os.system(f'mosquitto_ctrl -u admin -P1 123 dynsec setClientPassword {password}')
+    if ' ' in username or ' ' in password:
+        return JSONResponse(content=create_exception('DONT_USE_SPACES', 'BOSLUK KOYMA KARDESIM'), status_code=400)
 
+    security_file = json.load(open('/home/ikl/Desktop/mosquitto/dynamic-security.json', 'r'))
+    
+    for client in security_file['clients']:
+        if username == client['username']:
+            return JSONResponse(content=create_exception('USERNAME_ALREADY_TAKEN', 'PLEASE GUZEL BIR USERNAME AL, BUNU BASKASI ALMIS'), status_code=400)
+    
+    
+    register_user(username, password)
+    
+    
+    
+    return JSONResponse(content={'token': 'dasdasd'}, status_code=200)
+    
+    
 
 if __name__ == "__main__":
-    uvicorn.run(app, port=8000)
+    uvicorn.run(app,host='192.168.1.97', port=8000)
