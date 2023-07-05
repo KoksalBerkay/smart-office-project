@@ -197,49 +197,68 @@ class _BlePageState extends State<BlePage> {
   }
 
   _characteristicUpdater(BluetoothDevice mydevice) async {
-    List<BluetoothService> services = await mydevice.discoverServices();
-    for (var service in services) {
-      if (service.uuid.toString() == "c2302aa0-0548-49ff-a10a-e421fdb311ff") {
-        for (var char in service.characteristics) {
-          if (char.uuid.toString() == "340ab508-1009-11ee-be56-0242ac120002") {
-            await char.read().then((value) {
-              mqttPassword = String.fromCharCodes(value);
-              if (mqttPassword == "") {
-                throw Exception("mqttPassword is empty so go get it again!!!");
-              } else {
-                saveMqttPassword(mqttPassword);
+    int maxRetries = 10;
+    int retryCount = 0;
+
+    while (retryCount < maxRetries) {
+      try {
+        List<BluetoothService> services = await mydevice.discoverServices();
+        for (var service in services) {
+          if (service.uuid.toString() ==
+              "c2302aa0-0548-49ff-a10a-e421fdb311ff") {
+            for (var char in service.characteristics) {
+              if (char.uuid.toString() ==
+                  "340ab508-1009-11ee-be56-0242ac120002") {
+                List<int> value = await char.read();
+                mqttPassword = String.fromCharCodes(value);
+                if (mqttPassword.isEmpty) {
+                  throw Exception(
+                      "mqttPassword is empty so go get it again!!!");
+                } else {
+                  saveMqttPassword(mqttPassword);
+                }
+                print("The mqttPassword is: $mqttPassword");
+              } else if (char.uuid.toString() ==
+                  "e91a0da9-9048-4b87-99a9-01a8a62b65bf") {
+                List<int> value = await char.read();
+                uuid = String.fromCharCodes(value);
+                if (uuid.isEmpty) {
+                  throw Exception("UUID is empty so go get it again!!!");
+                } else {
+                  saveUuid(uuid);
+                }
+                print("The uuid is: $uuid");
+              } else if (char.uuid.toString() ==
+                  "4934c8ce-bce0-417c-b613-14f9f24da803") {
+                await char.write(ssid.codeUnits, withoutResponse: false);
+                print("Sent the wifi ssid successfully");
+              } else if (char.uuid.toString() ==
+                  "7dec32af-0afe-4718-9c5b-a0c120bab609") {
+                await char.write(pass.codeUnits, withoutResponse: false);
+                print("Sent the wifi pass successfully");
               }
-              print("The mqttPassword is: $mqttPassword");
-            });
-            Future.delayed(const Duration(milliseconds: 500));
-          } else if (char.uuid.toString() ==
-              "e91a0da9-9048-4b87-99a9-01a8a62b65bf") {
-            await char.read().then((value) {
-              uuid = String.fromCharCodes(value);
-              if (uuid == "") {
-                throw Exception("UUID is empty so go get it again!!!");
-              } else {
-                saveUuid(uuid);
-              }
-              print("The uuid is: $uuid");
-              Future.delayed(const Duration(milliseconds: 500));
-            });
-          } else if (char.uuid.toString() ==
-              "4934c8ce-bce0-417c-b613-14f9f24da803") {
-            char.write(ssid.codeUnits, withoutResponse: true);
-            print("Sent the wifi ssid successfully");
-            Future.delayed(const Duration(milliseconds: 500));
-          } else if (char.uuid.toString() ==
-              "7dec32af-0afe-4718-9c5b-a0c120bab609") {
-            char.write(pass.codeUnits, withoutResponse: true);
-            print("Sent the wifi pass successfully");
-            Future.delayed(const Duration(milliseconds: 500));
+            }
           }
-          print("CHARACTERISTICS: ${char.uuid.toString()}");
         }
+
+        // Exit the loop if the code executed successfully
+        break;
+      } catch (e) {
+        print("Error occurred: $e");
+        retryCount++;
+
+        // Wait for a delay before retrying
+        await Future.delayed(const Duration(milliseconds: 500));
       }
     }
+
+    // if (retryCount == maxRetries) {
+    //   // Reached maximum number of retries, handle the failure scenario here
+    //   print("Failed after $maxRetries attempts");
+    // }
+
     if (uuid != "" && mqttPassword != "") {
+      print("API WORK");
       final headers = {
         'accept': 'application/json',
         'Content-Type': 'application/json',
