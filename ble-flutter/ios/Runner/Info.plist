@@ -47,5 +47,27 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+
+	<!-- Added iOS permissions -->
+    <key>NSBluetoothAlwaysUsageDescription</key>
+    <string>Need BLE permission</string>
+    <key>NSBluetoothPeripheralUsageDescription</key>
+    <string>Need BLE permission</string>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>Need Location permission</string>
+    <key>NSLocationAlwaysUsageDescription</key>
+    <string>Need Location permission</string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>Need Location permission</string>
+
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Looking for local tcp Bonjour service</string>
+	<key>NSBonjourServices</key>
+	<array>
+	<string>mqtt.tcp</string>
+	</array>
+
+	
+	<!--  -->
 </dict>
 </plist>
