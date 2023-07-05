@@ -46,10 +46,9 @@ def save_to_db(_file_name: str, timestamp: str, value: str, threshold: str, stat
         
 
 def on_message(client, userdata, message):
-    _topic_type = str(message.topic).split('\\')[0]  # ex: temp\5d4ad7f4-1918-4210-942f-2489709c4411
-    _uuid = str(message.topic).split('\\')[1]
+    _topic_type = str(message.topic).split('/')[1]  # ex: temp\5d4ad7f4-1918-4210-942f-2489709c4411
+    _uuid = str(message.topic).split('/')[2]
     _message = message.payload.decode('utf-8').split('/')
-    print(_message)
     changed = True
     
     try:
