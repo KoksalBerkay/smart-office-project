@@ -111,20 +111,19 @@ async def register(register_payload: RegisterPayload) -> JSONResponse:
     username, password = register_payload['username'], register_payload['password']
 
     if ' ' in username or ' ' in password:
-        return JSONResponse(content=create_exception('DONT_USE_SPACES', 'BOSLUK KOYMA KARDESIM'), status_code=400)
+        return JSONResponse(content=create_exception('DONT_USE_SPACES', 'You must not use space on username or password. Try again.'), status_code=400)
 
     security_file = json.load(open('/home/ikl/Desktop/mosquitto/dynamic-security.json', 'r'))
     
     for client in security_file['clients']:
         if username == client['username']:
-            return JSONResponse(content=create_exception('USERNAME_ALREADY_TAKEN', 'PLEASE GUZEL BIR USERNAME AL, BUNU BASKASI ALMIS'), status_code=400)
+            return JSONResponse(content=create_exception('USERNAME_ALREADY_TAKEN', 'The username already taken.'), status_code=400)
     
     
     register_user(username, password)
     
     
-    
-    return JSONResponse(content={'token': 'dasdasd'}, status_code=200)
+    return JSONResponse(content={'status': True}, status_code=200)
     
     
 
