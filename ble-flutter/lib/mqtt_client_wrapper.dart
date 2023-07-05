@@ -40,7 +40,7 @@ class MQTTClientWrapper {
     // delay to wait for the uuid to be gotten from the shared preferences
     await Future.delayed(const Duration(milliseconds: 100));
 
-    client.clientIdentifier = uuid;
+    client.clientIdentifier = '${uuid}_mobile';
 
     // check the if the username and password are empty if so connect to the client without
     // authentication
@@ -102,6 +102,7 @@ class MQTTClientWrapper {
     client.onDisconnected = _onDisconnected;
     client.onConnected = _onConnected;
     client.onSubscribed = _onSubscribed;
+    client.autoReconnect = true;
   }
 
   void _setupMqttClientWithoutAuth(String host, int port) {
@@ -110,6 +111,7 @@ class MQTTClientWrapper {
     client.onDisconnected = _onDisconnected;
     client.onConnected = _onConnected;
     client.onSubscribed = _onSubscribed;
+    client.autoReconnect = true;
   }
 
   Stream<String>? subscribeToTopic(String topicName) {
