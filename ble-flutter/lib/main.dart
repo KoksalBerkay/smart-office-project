@@ -272,7 +272,7 @@ class _BlePageState extends State<BlePage> {
       print("SEND DATA: $data");
 
       final url = Uri.parse('$urlPrefix/register/');
-
+      
       final res =
           await http.post(url, headers: headers, body: jsonEncode(data));
       final status = res.statusCode;
