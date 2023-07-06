@@ -36,36 +36,38 @@ class MQTTClientWrapper {
       _setupMqttClientWithAuth(username, host, port);
     }
 
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    final uuid = prefs.getString('UUID')!;
-
-    String generateRandomString(int lengthOfString){
+    String generateRandomString(int lengthOfString) {
       final random = Random();
-      const allChars='AaBbCcDdlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1EeFfGgHhIiJjKkL234567890';
-      final randomString = List.generate(lengthOfString, (index) => allChars[random.nextInt(allChars.length)]).join();
+      const allChars =
+          'AaBbCcDdlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1EeFfGgHhIiJjKkL234567890';
+      final randomString = List.generate(lengthOfString,
+          (index) => allChars[random.nextInt(allChars.length)]).join();
       return randomString;
     }
 
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final uuid = prefs.getString('UUID')!;
     // delay to wait for the uuid to be gotten from the shared preferences
-    
+    await Future.delayed(const Duration(milliseconds: 100));
+
     String? identifier;
 
-    
-    try{
+    try {
       identifier = await UniqueIdentifier.serial;
-      print("XXXXXX $identifier");
-    } on Exception{
-      identifier = '';
+      print("UNIQUE ID OF DEVICE: $identifier");
+    } on Exception {
+      identifier = generateRandomString(16);
     }
 
     if (identifier == '') {
       identifier = generateRandomString(16);
+    } else {
+      identifier ??= generateRandomString(16);
     }
 
-    await Future.delayed(const Duration(milliseconds: 100));
-
     client.clientIdentifier = '${uuid}_$identifier';
-    print(client.clientIdentifier.toString());
+    print("CLIENT ID DEFINED: ${client.clientIdentifier.toString()}");
+
     // check the if the username and password are empty if so connect to the client without
     // authentication
 

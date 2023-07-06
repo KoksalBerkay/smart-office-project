@@ -252,11 +252,6 @@ class _BlePageState extends State<BlePage> {
       }
     }
 
-    // if (retryCount == maxRetries) {
-    //   // Reached maximum number of retries, handle the failure scenario here
-    //   print("Failed after $maxRetries attempts");
-    // }
-
     if (uuid != "" && mqttPassword != "") {
       print("API WORK");
       final headers = {
@@ -272,7 +267,7 @@ class _BlePageState extends State<BlePage> {
       print("SEND DATA: $data");
 
       final url = Uri.parse('$urlPrefix/register/');
-      
+
       final res =
           await http.post(url, headers: headers, body: jsonEncode(data));
       final status = res.statusCode;
@@ -283,8 +278,17 @@ class _BlePageState extends State<BlePage> {
         responseData = jsonDecode(res.body); // Parse the response data as a Map
         nav();
       }
+
+      // THE JSON RESPONSE TO LOOK AT: {"error": "USERNAME_ALREADY_TAKEN", "error_description": "The username already taken."}
+
+      else if (status == 400 && res.body == '{"error": "USERNAME_ALREADY_TAKEN", "error_description": "The username already taken."}') {
+        print('USERNAME ALREADY TAKEN, WHICH MEANS A NEW USER!');
+        isSuccess = true;
+        responseData = jsonDecode(res.body); // Parse the response data as a Map
+        nav();
+      }
       print("Request Status: $status");
-      if (status != 200) {
+      if (isSuccess) {
         throw Exception('http.post error: statusCode=$status');
       }
     }
