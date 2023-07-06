@@ -69,39 +69,42 @@ class ServerCallback : public BLEServerCallbacks {
     }
 };
 
-void startBluetooth() {
-
+// wifiTreade means there is a visitor in the room who wants to control room. But the room owner already connected and devices don't need to trade wifi credentials.
+void startBluetooth(bool wifiTrade = true, String espUuid = "") {
   BLEDevice::init("test_esp");
   BLEServer *pServer = BLEDevice::createServer();
   pServer->setCallbacks(new ServerCallback());
 
   BLEService *pService = pServer->createService(SERVICE_UUID);
   
+  _mqttPass = StringUUIDGen();
+  if(wifiTrade){
+      _uuid = StringUUIDGen();
+      BLECharacteristic *ssidCharacteristic = pService->createCharacteristic(
+        CHARACTERISTIC_SSID_UUID,
+        BLECharacteristic::PROPERTY_WRITE);
+      BLECharacteristic *passCharacteristic = pService->createCharacteristic(
+        CHARACTERISTIC_PASS_UUID,
+        BLECharacteristic::PROPERTY_WRITE);
+      ssidCharacteristic->setCallbacks(new CharacteristicCallback());
+      passCharacteristic->setCallbacks(new CharacteristicCallback());
+  }else{
+    _uuid = espUuid;  
+  }
   BLECharacteristic *uuidCharacteristic = pService->createCharacteristic(
       CHARACTERISTIC_UUID_UUID,
       BLECharacteristic::PROPERTY_READ);
   BLECharacteristic *mqttPassCharacteristic = pService->createCharacteristic(
       CHARACTERISTIC_MQTTPASS_UUID,
       BLECharacteristic::PROPERTY_READ);
-  BLECharacteristic *ssidCharacteristic = pService->createCharacteristic(
-      CHARACTERISTIC_SSID_UUID,
-      BLECharacteristic::PROPERTY_WRITE);
-  BLECharacteristic *passCharacteristic = pService->createCharacteristic(
-      CHARACTERISTIC_PASS_UUID,
-      BLECharacteristic::PROPERTY_WRITE);
 
-  _uuid = StringUUIDGen();
-  _mqttPass = StringUUIDGen();
   uuidCharacteristic->setValue(string(_uuid.c_str()));
   mqttPassCharacteristic->setValue(string(_mqttPass.c_str()));
   Serial.println("UUID -> " + _uuid);
   Serial.println("UUID PASS -> " + _mqttPass);
-  ssidCharacteristic->setCallbacks(new CharacteristicCallback());
-  passCharacteristic->setCallbacks(new CharacteristicCallback());
   BLEAdvertisementData advertisementData;
   advertisementData.setManufacturerData(MANUFACTURER_NAME);
   advertisementData.setName("test_esp");
-
   BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
   pAdvertising->addServiceUUID(SERVICE_UUID);
   pAdvertising->setScanResponse(true);
@@ -114,12 +117,19 @@ void startBluetooth() {
   Serial.println("BT Started.");
 }
 
+void stopBluetooth(){
+  BLEDevice::deinit();
+}
 
-
-void clearFlash() {
-  Serial.println("Flash cleared");
+// newUser means if there is already a user connected to esp and another client tries to connect esp. If newUser is false this means there is no client connected with esp32.
+void clearFlash(bool clearAll=true) {
   pref.begin(ESP_FLASH_NAME, false);
-  pref.clear();
+  if(clearAll){ // in purpose of testing easier
+    pref.clear();
+  }else{ // if there is a 
+    pref.remove(FLASH_WIFI_PASS);
+    pref.remove(FLASH_WIFI_SSID);
+  }
   pref.end();
 }
 
