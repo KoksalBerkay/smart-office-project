@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:unique_identifier/unique_identifier.dart';
 
 // DISCLAIMER: Unsubscribe func is not tested.
 
@@ -37,11 +39,33 @@ class MQTTClientWrapper {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final uuid = prefs.getString('UUID')!;
 
+    String generateRandomString(int lengthOfString){
+      final random = Random();
+      const allChars='AaBbCcDdlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1EeFfGgHhIiJjKkL234567890';
+      final randomString = List.generate(lengthOfString, (index) => allChars[random.nextInt(allChars.length)]).join();
+      return randomString;
+    }
+
     // delay to wait for the uuid to be gotten from the shared preferences
+    
+    String? identifier;
+
+    
+    try{
+      identifier = await UniqueIdentifier.serial;
+      print("XXXXXX $identifier");
+    } on Exception{
+      identifier = '';
+    }
+
+    if (identifier == '') {
+      identifier = generateRandomString(16);
+    }
+
     await Future.delayed(const Duration(milliseconds: 100));
 
-    client.clientIdentifier = '${uuid}_mobile';
-
+    client.clientIdentifier = '${uuid}_$identifier';
+    print(client.clientIdentifier.toString());
     // check the if the username and password are empty if so connect to the client without
     // authentication
 
