@@ -70,9 +70,10 @@ class ServerCallback : public BLEServerCallbacks {
 };
 
 // wifiTreade means there is a visitor in the room who wants to control room. But the room owner already connected and devices don't need to trade wifi credentials.
-void startBluetooth(bool wifiTrade = true, String espUuid = "") {
+void startBluetooth(bool wifiTrade = true, String espUuid = "NULL") {
   BLEDevice::init("test_esp");
   BLEServer *pServer = BLEDevice::createServer();
+
   pServer->setCallbacks(new ServerCallback());
 
   BLEService *pService = pServer->createService(SERVICE_UUID);
@@ -89,7 +90,7 @@ void startBluetooth(bool wifiTrade = true, String espUuid = "") {
       ssidCharacteristic->setCallbacks(new CharacteristicCallback());
       passCharacteristic->setCallbacks(new CharacteristicCallback());
   }else{
-    _uuid = espUuid;  
+    _uuid = espUuid;
   }
   BLECharacteristic *uuidCharacteristic = pService->createCharacteristic(
       CHARACTERISTIC_UUID_UUID,
@@ -115,6 +116,9 @@ void startBluetooth(bool wifiTrade = true, String espUuid = "") {
   BLEDevice::startAdvertising();
   delay(1000);
   Serial.println("BT Started.");
+   // Serial.println("Old MTU -> " + String( (char *)BLEDevice::getMTU() ) );
+  BLEDevice::setMTU(128);
+  // Serial.println("New MTU -> " + String( (char *)BLEDevice::getMTU() ) );
 }
 
 void stopBluetooth(){
