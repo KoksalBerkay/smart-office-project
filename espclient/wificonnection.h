@@ -29,7 +29,6 @@ class MqttHandler {
     void setupMQTT(void (*callback)(char*, byte*, unsigned int));
     boolean publishData(const char* topic, float sensorData, float threshold, boolean stat);
     boolean reconnectTopics(char* topics[]);
-    String receiveMAC();
     // void callback(char* topic, byte * payload, unsigned uint16_t length);
 
 
@@ -39,9 +38,6 @@ PubSubClient getMqttHandler(){
   return client;
 }
 
-String MqttHandler::receiveMAC(){
-  return WiFi.macAddress();
-}
 void MqttHandler::setServerIP(String ipAddress) {
   this->serverIP = ipAddress;
 }
