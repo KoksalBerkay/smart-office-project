@@ -113,7 +113,7 @@ bool MqttHandler::publishData(const char* topic, float sensorData, float thresho
 
 boolean MqttHandler::reconnectTopics(char* topics[]) {
   Serial.print("Reconnect...");
-  if (client.connect(uuid.c_str() ,"murat" ,"321")) {
+  if (client.connect((uuid+WiFi.macAddress).c_str(),"murat" ,"321")) {
     // Once connected, publish an announcement...
     // ... and resubscribe
     
