@@ -14,7 +14,7 @@ class MqttHandler {
     String wifiPass;
     String wifiSsid;
     String mqttPass;
-    
+    String clientId;
     
     //static void callback(char* topic, byte* payload, unsigned int length);
   public:
@@ -29,6 +29,7 @@ class MqttHandler {
     void setupMQTT(void (*callback)(char*, byte*, unsigned int));
     boolean publishData(const char* topic, float sensorData, float threshold, boolean stat);
     boolean reconnectTopics(char* topics[]);
+
     // void callback(char* topic, byte * payload, unsigned uint16_t length);
 
 
@@ -83,6 +84,9 @@ void MqttHandler::setupMQTT(void (*callbackfunc)(char*, byte*, unsigned int)) {
 
 void MqttHandler::setUuid(String uuid) {
   this->uuid = uuid;
+  String cID = uuid+"_"+WiFi.macAddress();
+  cID.replace(":",""); // MAC Address is something like that AB:CD:EF:GF ... With this line colons will be removed.
+  this->clientId = cID;
 }
 
 void MqttHandler::setMqttPass(String mqttPass) {
@@ -108,8 +112,9 @@ bool MqttHandler::publishData(const char* topic, float sensorData, float thresho
 //13p%*0K9mvZ#V
 
 boolean MqttHandler::reconnectTopics(char* topics[]) {
+  String espMac = WiFi.macAddress();
   Serial.print("Reconnect...");
-  if (client.connect((uuid+WiFi.macAddress).c_str(),"murat" ,"321")) {
+  if (client.connect( clientId.c_str(), uuid.c_str(), mqttPass.c_str() ) ) {
     // Once connected, publish an announcement...
     // ... and resubscribe
     
