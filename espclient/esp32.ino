@@ -6,12 +6,12 @@
 #define LDR_PIN 35
 #define RELAY_PIN 23
 #define LIGHT_PIN 22
-#define SERVER_IP "192.168.1.97"
+#define SERVER_IP "192.168.144.186"
 #define SERVER_PORT 1883
 #define ESPBUTTON 0
 #define LIGHTTOPIC "sensor-data/light/"
 #define MOTIONTOPIC "sensor-data/motion/"
-#define TEMPTOPIC "sensor-data/temp/" 
+#define TEMPTOPIC "sensor-data/temp/"
 #define HUMIDTOPIC "sensor-data/humidity/"
 #define BT_BUTTON 13
 
@@ -27,7 +27,7 @@ unsigned int lastReconnectAttempt = 0;
 unsigned int lastMotionTime = 0;
 unsigned int motionlessTimeThreshold = 0;
 float tempData;
-float tempThreshold = 26; 
+float tempThreshold = 26;
 float humidityData;
 
 
@@ -62,24 +62,28 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
 }
 
-void loop2( void * parameter){
-  while(1){
-    client.loop();
-    
+void loop2( void * parameter) {
+  while (1) {
+
+    if (client.connected()) {
+      client.loop();
+
+    }
+
     if (!digitalRead(0)) {
       clearFlash();
     }
 
-    if (digitalRead(BT_BUTTON)){
+    if (digitalRead(BT_BUTTON)) {
       Serial.println("EVEVEVEVEVEVEVEVE");
       long currentTime = millis();
       delay(3000);
-      if(digitalRead(BT_BUTTON)){
+      if (digitalRead(BT_BUTTON)) {
         Serial.println("XXXXXXXXXXXXXXXXXXXXXX");
         bool btStarted = false;
-        while(millis()-currentTime < 180000){
+        while (millis() - currentTime < 180000) {
           Serial.println("TTTTTTTTT");
-          if(!btStarted){
+          if (!btStarted) {
             startBluetooth(false, uuid);
             Serial.println("BT ON");
             btStarted = true;
@@ -90,9 +94,9 @@ void loop2( void * parameter){
         Serial.println("BT OFF");
       }
     }
-    
+
     delay(10);
-    }
+  }
 }
 
 void setup() {
@@ -128,13 +132,13 @@ void setup() {
   client.setCallback(callback);
   TaskHandle_t Task1;
   xTaskCreatePinnedToCore(
-      loop2, /* Function to implement the task */
-      "Task1", /* Name of the task */
-      10000,  /* Stack size in words */
-      NULL,  /* Task input parameter */
-      0,  /* Priority of the task */
-      &Task1,  /* Task handle. */
-      1); /* Core where the task should run */
+    loop2, /* Function to implement the task */
+    "Task1", /* Name of the task */
+    10000,  /* Stack size in words */
+    NULL,  /* Task input parameter */
+    0,  /* Priority of the task */
+    &Task1,  /* Task handle. */
+    1); /* Core where the task should run */
   delay(500);
 }
 
@@ -164,7 +168,7 @@ void loop() {
   int motionlessTime = millis() - lastMotionTime;
   Serial.print("motionless time : ");
   Serial.println(motionlessTime);
-  
+
   digitalWrite(RELAY_PIN , (tempData < tempThreshold) ? 1 : 0);
 
   digitalWrite(LIGHT_PIN , (lightData < lightThreshold) ? 1 : 0);
@@ -182,25 +186,25 @@ void loop() {
   } else {
     // Client connected
 
-    
+
     handler.publishData((TEMPTOPIC + uuid).c_str(), tempData, tempThreshold, digitalRead(RELAY_PIN));
     Serial.println(tempThreshold);
     //publishData("temp", 22, 25, true);
     handler.publishData((MOTIONTOPIC + uuid).c_str() , motionlessTime / 1000 , motionlessTimeThreshold , pirData);
     handler.publishData((LIGHTTOPIC + uuid).c_str() , lightData , lightThreshold, (lightData < lightThreshold));
-    if(!handler.publishData((HUMIDTOPIC + uuid).c_str() , humidityData , 0, 0)){
+    if (!handler.publishData((HUMIDTOPIC + uuid).c_str() , humidityData , 0, 0)) {
       Serial.print("publishing failed");
     }
   }
   delay(1000);
-  
+
 }
 
-void buttonPressed(){
+void buttonPressed() {
   long currentTime = millis();
   //delay(3000);
-  while(millis()-currentTime > 15000){
-    if(digitalRead(BT_BUTTON)){
+  while (millis() - currentTime > 15000) {
+    if (digitalRead(BT_BUTTON)) {
       startBluetooth(false);
     }
   }
