@@ -6,7 +6,7 @@
 #define LDR_PIN 35
 #define RELAY_PIN 23
 #define LIGHT_PIN 22
-#define SERVER_IP "192.168.144.186"
+#define SERVER_IP "192.168.1.97"
 #define SERVER_PORT 1883
 #define ESPBUTTON 0
 #define LIGHTTOPIC "sensor-data/light/"
